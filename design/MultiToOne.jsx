@@ -1,6 +1,8 @@
 ﻿// JavaScript Document
 //Set up vairaibles
 
+
+var dot_size = 30;
 function Rect(ltwh){
   this.l = ltwh[0];
   this.t = ltwh[1];
@@ -13,6 +15,9 @@ function Rect(ltwh){
   this.get_copy_at = function(point){
     return new Rect([point[0], point[1], this.w, this.h]);
   };
+  this.get_expand_rect = function(dsize){
+    return new Rect([this.l-dsize, this.t+dsize, this.w+2*dsize, this.h+2*dsize]);
+  }
 
   this.get_ltrb = function(){
     return [this.l, this.t, this.r, this.b];
@@ -24,17 +29,7 @@ function Rect(ltwh){
 
   this.is_overlap = function(rh){
     var lh = this;
-    if (
-        ((lh.l-rh.l)*(lh.l-rh.r)>=0)
-        &&((lh.r-rh.l)*(lh.r-rh.r)>=0)
-        &&((lh.l-rh.l)*(lh.r-rh.r)!=0))
-        return false;
-    if (
-        ((lh.t-rh.t)*(lh.t-rh.b)>=0)
-        &&((lh.b-rh.t)*(lh.b-rh.b)>=0)
-        &&((lh.t-rh.t)*(lh.b-rh.b))!=0)
-        return false;
-     return true;
+    return !(lh.l>=rh.r || lh.r<=rh.l || lh.t<=rh.b || lh.b>=rh.t);
   }
 }
 
@@ -42,7 +37,11 @@ function RectPiece(pageitem){
   var pi = pageitem;
 
   this.get_rect = function(){
-    return new Rect([pi.controlBounds[0], pi.controlBounds[1], pi.width, pi.height]);
+    return new Rect([
+        pi.controlBounds[0],
+        pi.controlBounds[1],
+        pi.controlBounds[2] - pi.controlBounds[0],
+        pi.controlBounds[1] - pi.controlBounds[3]]);
   }
 
   this.move_to = function(point){
@@ -54,20 +53,22 @@ var PrintBoard = function(artboard){
   $.writeln(artboard.artboardRect);
   this.width = artboard.artboardRect[2];
   this.insert_points = [];
-  this.insert_points.push([1, 1]);
+  this.insert_points.push([dot_size, -dot_size]);
   this.pieces = [];
 
   this.insert = function(pageitem)
   {
     var piece = new RectPiece(pageitem);
     var rect = piece.get_rect();
+    ex_rect = rect.get_expand_rect(dot_size);
     for(var i=0; i<this.insert_points.length; i++)
     {
-      var tr = rect.get_copy_at(this.insert_points[i]);
+      var tr = ex_rect.get_copy_at(this.insert_points[i]);
       if (this.test(tr))
       {
+        var dst = rect.get_copy_at(this.insert_points[i])
         this.insert_points.splice (i, 1);
-        this.place_piece(tr, piece);
+        this.place_piece(dst, piece);
         break;
       }
     }
@@ -90,13 +91,41 @@ var PrintBoard = function(artboard){
   {
     var point = [rect.l, rect.t];
     piece.move_to(point);
+    this.place_dot_around(rect);
     this.pieces.push(piece);
-    this.insert_points.push([rect.r, rect.t]);
-    this.insert_points.push([rect.l, rect.b]);//piece.y-piece.height]);
+    this.insert_points.push([rect.r+dot_size, rect.t]);
+    this.insert_points.push([rect.l, rect.b-dot_size]);//piece.y-piece.height]);
     this.insert_points.sort(function(a, b)
       {
         return -(a[1]-b[1])|| (a[0] - b[0]);
       });
+  };
+
+  this.place_dot_at = function(point){
+    var dot = import_piece(app.activeDocument, "d:\\workspace\\dynamicteam\\dot.pdf");
+    var piece = new RectPiece(dot);
+
+    piece.move_to(point);
+  };
+
+  this.place_dot_around = function(rect){
+    var position;
+    // left
+    var high = Math.floor(rect.t/dot_size);
+    var low = Math.ceil(rect.b/dot_size);
+    position = [rect.l-dot_size+5, dot_size*(high-Math.floor((high-low)/3))];
+    this.place_dot_at(position);
+    // top
+    var left = Math.ceil(rect.l/dot_size);
+    var right = Math.floor(rect.r/dot_size);
+    position = [dot_size*(left+Math.floor((right-left)/3)), rect.t+dot_size-5];
+    this.place_dot_at(position);
+    // right
+    position = [rect.r+5, dot_size*(low+Math.floor((high-low)/3))];
+    this.place_dot_at(position);
+    // bottom
+    position = [dot_size*(right-Math.floor((right-left)/3)), rect.b-5];
+    this.place_dot_at(position);
   };
 }
 
