@@ -47,18 +47,58 @@ function RectPiece(pageitem){
   this.move_to = function(point){
     pi.translate(point[0]-pi.controlBounds[0], point[1]-pi.controlBounds[1])
   };
+
+  this.show = function(show){
+    pi.hidden = !show;
+  };
+  
+  this.remove = function(){
+    pi.remove();
+  }
 }
 
 var PrintBoard = function(artboard){
   $.writeln(artboard.artboardRect);
   this.width = artboard.artboardRect[2];
+  this.height = artboard.artboardRect[3];
   this.insert_points = [];
   this.insert_points.push([dot_size, -dot_size]);
   this.pieces = [];
+  this.dots = [];
 
-  this.insert = function(pageitem)
+
+  this.import_pieces = function(pieces){
+    for(var i=0; i<pieces.length; ){
+      if (this.insert(pieces[i])){
+        pieces.splice (i, 1);
+      }
+      else{
+        i++;
+      }
+    }
+  };
+
+  this.export_pdf = function(filename){
+    var doc = app.activeDocument;
+    var saveName = new File(filename);
+    var saveOpts = new PDFSaveOptions();
+    saveOpts.compatibility = PDFCompatibility.ACROBAT5;
+    saveOpts.generateThumbnails = true;
+    saveOpts.preserveEditability = false;
+    saveOpts.artboardRange = "1";
+    doc.saveAs(saveName, saveOpts);
+  };
+
+  this.remove_all = function(){
+    for(var i=0; i<this.pieces.length; i++)
+      this.pieces[i].remove();
+    for(var i=0; i<this.dots.length; i++)
+      this.dots[i].remove();
+  };
+
+  this.insert = function(piece)
   {
-    var piece = new RectPiece(pageitem);
+    //var piece = new RectPiece(pageitem);
     var rect = piece.get_rect();
     ex_rect = rect.get_expand_rect(dot_size);
     for(var i=0; i<this.insert_points.length; i++)
@@ -69,9 +109,11 @@ var PrintBoard = function(artboard){
         var dst = rect.get_copy_at(this.insert_points[i])
         this.insert_points.splice (i, 1);
         this.place_piece(dst, piece);
-        break;
+        piece.show(true);
+        return true;
       }
     }
+    return false;
   };
 
   this.test = function(tr)
@@ -79,6 +121,9 @@ var PrintBoard = function(artboard){
     //var tr = rect.get_copy_at(point);
     if (tr.r>this.width)
       return false;
+    if (tr.b<this.height)
+      return false;
+
     for(var i=0; i<this.pieces.length; i++)
     {
       if (tr.is_overlap(this.pieces[i].get_rect()))
@@ -103,9 +148,10 @@ var PrintBoard = function(artboard){
 
   this.place_dot_at = function(point){
     var dot = import_piece(app.activeDocument, "d:\\workspace\\dynamicteam\\dot.pdf");
-    var piece = new RectPiece(dot);
+    //var piece = new RectPiece(dot);
 
-    piece.move_to(point);
+    dot.move_to(point);
+    this.dots.push(dot);
   };
 
   this.place_dot_around = function(rect){
@@ -138,8 +184,19 @@ function new_artboard_next(artboard){
 function import_piece(doc, filename){
   var pi = doc.placedItems.add();
   pi.file = File(filename);
-  return pi;
+  return new RectPiece(pi);
 };
+
+function import_all(files){
+  var pieces = [];
+  var doc = app.activeDocument;
+  for (var i = 0; i < files.length; i++) {
+    var piece = import_piece(doc, files[i]);
+    piece.show(false);
+    pieces.push(piece);
+  }
+  return pieces;
+}
 
 function main(){
   // Select the source folder.
@@ -150,7 +207,16 @@ function main(){
     // Get all files matching the pattern
     var files = sourceFolder.getFiles(/\.(ai|eps|pdf)$/i);
 
-    if (files.length > 0) {
+    var pieces = import_all(files);
+    while(pieces.length > 0){
+      var pb = new PrintBoard(app.activeDocument.artboards[0]);
+      pb.import_pieces(pieces);
+
+      pb.export_pdf(sourceFolder+"_"+pieces.length+'_files_left.pdf');
+      pb.remove_all();
+    }
+
+    /*if (files.length > 0) {
       // Get the destination to save the files
       var pb = new PrintBoard(app.activeDocument.artboards[0]);
       var doc = app.activeDocument;
@@ -162,31 +228,9 @@ function main(){
     }
     else {
       alert('No matching files found');
-    }
+    }*/
   }
 }
 
 main();
-/*
-var newRect = function(x, y, width, height) {
-    var l = 0;
-    var t = 1;
-    var r = 2;
-    var b = 3;
- 
-    var rect = [];
- 
-    rect[l] = x;
-    rect[t] = -y;
-    rect[r] = width + x;
-    rect[b] = -(height - rect[t]);
- 
-    return rect;
-};
-
-var ab = app.activeDocument.artboards[0];
-var r = ab.artboardRect;
-var r1= newRect(r[0] +r[2]+100, r[1], r[2], -r[3]);
-//
-var nab = app.activeDocument.artboards.add(r1);*/
 
