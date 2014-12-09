@@ -141,30 +141,32 @@ function import_piece(doc, filename){
   return pi;
 };
 
-// Select the source folder.
-sourceFolder = Folder.selectDialog('Select the folder with Illustrator files that you want to mere into one', '~');
+function main(){
+  // Select the source folder.
+  var sourceFolder = Folder.selectDialog('Select the folder with Illustrator files that you want to mere into one', '~');
 
-// If a valid folder is selected
-if (sourceFolder != null) {
-  //files = new Array();
-  // Get all files matching the pattern
-  files = sourceFolder.getFiles(/\.(ai|eps|pdf)$/i);
+  // If a valid folder is selected
+  if (sourceFolder != null) {
+    // Get all files matching the pattern
+    var files = sourceFolder.getFiles(/\.(ai|eps|pdf)$/i);
 
-  if (files.length > 0) {
-    // Get the destination to save the files
-    var pb = new PrintBoard(app.activeDocument.artboards[0]);
-    var doc = app.activeDocument;
-    for (i = 0; i < files.length; i++) {
-      var piece = import_piece(doc, files[i]);
-      pb.insert(piece);
-      //break;
+    if (files.length > 0) {
+      // Get the destination to save the files
+      var pb = new PrintBoard(app.activeDocument.artboards[0]);
+      var doc = app.activeDocument;
+      for (i = 0; i < files.length; i++) {
+        var piece = import_piece(doc, files[i]);
+        pb.insert(piece);
+        //break;
+      }
     }
-  }
-  else {
-    alert('No matching files found');
+    else {
+      alert('No matching files found');
+    }
   }
 }
 
+main();
 /*
 var newRect = function(x, y, width, height) {
     var l = 0;
