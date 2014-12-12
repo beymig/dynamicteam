@@ -1,8 +1,51 @@
 ﻿// JavaScript Document
 //Set up vairaibles
 
+var fabric = {
+  "29089":["BASKETBALL", 60, 80],
+  "28979":["BASKETBALL", 60, 80],
+  "20365":["BASKETBALL", 60, 90],
+  "29192":["BASKETBALL", 58, 90],
+  "9851":["BASKETBALL", 62, 60],
+  "9087":["BASKETBALL", 62, 60],
+  "20324":["TRACK", 62, 80],
+  "9052":["TRACK", 60, 60],
+  "29084":["TRACK", 62, 60],
+  "340880":["RACER KILT", 60, 50],
+  "9017":["WRESTLING", 60, 90],
+  "20337":["VOLLYBALL", 58, 60],
+  "20316":["VOLLYBALL", 58, 60],
+  "20439":["VOLLYBALL", 58, 60],
+  "29121":["SOCCER", 62, 80],
+  "28878":["SOCCER TRIM", 62, 70],
+  "29209":["TRIM", 60, 50],
+  "29127":["LACROSSE", 60, 90],
+  "29287":["LACROSSE", 54, 70],
+  "29176":["LACROSSE", 54, 70],
+  "1649":["DYNA-DRY", 60, 60],
+  "2031":["DYNA-DRY", 60, 60],
+  "AEROFIBER":["DYNAMIC", 62, 90],
+  "DRY-TEC":["DYNAMIC", 60, 90],
+  "DAZZLE":["DYNAMIC", 60, 90],
+  "5235":["FLEX-DRY", 63, 90],
+  "RICE-MESH":["DYNAMIC", 61, 90],
+  "STRECH-TEC":["DYNAMIC", 64, 90],
+  "791-PANTS":["HEAVY POLYESTER", 64, 90],
+  "298-JERSEY":["HEAVY POLYESTER", 60, 90],
+  "5377 9.5 oz":["HEAVY WEIGHT", 63, 90],
+  "AIR-MESH":["DYNAMIC", 60, 80],
+  "HEAVY DAZZLE":["DYNAMIC", 60, 80],
+  "POLY-FLEX":["DYNAMIC", 64, 90],
+  "20365":["DYNAMIC", 61, 90],
+  "1997":["NIKE", 54, 80],
+  "1887":["NIKE", 55, 80],
+  "5106":["NIKE", 62, 80],
+};
+
+var size_order = ["AXXXXLT", "AXXXLT","AXXLT", "AXLT", "ALT", "AMT", "AST", "AXXXXL", "AXXXL", "AXXL", "AXL", "AL", "AM", "AS", "AXS", "AXXS", "YXXL", "YXL", "YL", "YM", "YS"];
 
 var dot_size = 30;
+
 function Rect(ltwh){
   this.l = ltwh[0];
   this.t = ltwh[1];
@@ -65,7 +108,6 @@ var PrintBoard = function(artboard){
   this.insert_points.push([dot_size, -dot_size]);
   this.pieces = [];
   this.dots = [];
-
 
   this.import_pieces = function(pieces){
     for(var i=0; i<pieces.length; ){
@@ -175,17 +217,26 @@ var PrintBoard = function(artboard){
   };
 }
 
-function new_artboard_next(artboard){
-  var rect = artboard.artboardRect;
-  rect[0] += rect[2]+100;
-  return artboard.parent.add(rect);
-}
-
 function import_piece(doc, filename){
   var pi = doc.placedItems.add();
   pi.file = File(filename);
   return new RectPiece(pi);
 };
+
+function get_fabric_code(folder){
+  var fabric_code = folder.displayName.split("_")[1];
+  if (fabric_code.search("FLAT")==0)
+    fabric_code = fabric_code.slice(4);
+  return fabric_code;
+}
+
+function get_fabric_size(fabric_code){
+  if (fabric_code in fabric){
+    var item = fabric[fabric_code];
+    var size = fabric[fabric_code][1];
+    return size;
+  }
+}
 
 function import_all(files){
   var pieces = [];
@@ -198,37 +249,39 @@ function import_all(files){
   return pieces;
 }
 
+function resize_artboard(ab, width, height){
+  ab.artboardRect = [0, 0, (new UnitValue(width, "in")).as ('px'), (new UnitValue(-height, "in")).as('px')];
+};
+
 function main(){
   // Select the source folder.
   var sourceFolder = Folder.selectDialog('Select the folder with Illustrator files that you want to mere into one', '~');
 
+  if(!sourceFolder)
+    return;
   // If a valid folder is selected
-  if (sourceFolder != null) {
+  var fabric_size = get_fabric_size(get_fabric_code(sourceFolder));
+  if (!fabric_size)
+    return "Fabric Error!";
+
+
+  var ab = app.activeDocument.artboards[0];
+  $.writeln("fabric: "+fabric_size);
+  resize_artboard(ab, fabric_size, 120);
+
+  for (var size in size_order) {
     // Get all files matching the pattern
-    var files = sourceFolder.getFiles(/\.(ai|eps|pdf)$/i);
+    var re = new RegExp("^(_|)"+size_order[size]+".*\\.(ai|eps|pdf)$", "i");
+    var files = sourceFolder.getFiles(function(f){return f.displayName.match(re);});///\.(ai|eps|pdf)$/i);
 
     var pieces = import_all(files);
     while(pieces.length > 0){
-      var pb = new PrintBoard(app.activeDocument.artboards[0]);
+      var pb = new PrintBoard(ab);
       pb.import_pieces(pieces);
 
-      pb.export_pdf(sourceFolder+"_"+pieces.length+'_files_left.pdf');
+      pb.export_pdf(sourceFolder+"\\"+pieces.length+"_"+size_order[size]+'_files_left.pdf');
       pb.remove_all();
     }
-
-    /*if (files.length > 0) {
-      // Get the destination to save the files
-      var pb = new PrintBoard(app.activeDocument.artboards[0]);
-      var doc = app.activeDocument;
-      for (i = 0; i < files.length; i++) {
-        var piece = import_piece(doc, files[i]);
-        pb.insert(piece);
-        //break;
-      }
-    }
-    else {
-      alert('No matching files found');
-    }*/
   }
 }
 
