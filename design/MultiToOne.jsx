@@ -223,14 +223,15 @@ function import_piece(doc, filename){
   return new RectPiece(pi);
 };
 
-function get_fabric_code(folder){
-  var fabric_code = folder.displayName.split("_")[1];
-  if (fabric_code.search("FLAT")==0)
-    fabric_code = fabric_code.slice(4);
-  return fabric_code;
-}
 
-function get_fabric_size(fabric_code){
+function get_fabric_size(folder){
+  var fabric_code = function(folder){
+    var fabric_code = folder.displayName.split("_")[1];
+    if (fabric_code.search("FLAT")==0)
+      fabric_code = fabric_code.slice(4);
+    return fabric_code;
+  }(folder);
+
   if (fabric_code in fabric){
     var item = fabric[fabric_code];
     var size = fabric[fabric_code][1];
@@ -260,7 +261,7 @@ function main(){
   if(!sourceFolder)
     return;
   // If a valid folder is selected
-  var fabric_size = get_fabric_size(get_fabric_code(sourceFolder));
+  var fabric_size = get_fabric_size(sourceFolder);
   if (!fabric_size)
     return "Fabric Error!";
 
@@ -275,6 +276,13 @@ function main(){
     var files = sourceFolder.getFiles(function(f){return f.displayName.match(re);});///\.(ai|eps|pdf)$/i);
 
     var pieces = import_all(files);
+    pieces.sort(function(a, b)
+        {
+          var ar = a.get_rect();
+          var br = b.get_rect();
+          return -(((ar.w*ar.h)-(br.w*br.h))||(ar.h-br.h));
+        });
+
     while(pieces.length > 0){
       var pb = new PrintBoard(ab);
       pb.import_pieces(pieces);
