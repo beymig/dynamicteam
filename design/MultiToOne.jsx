@@ -1,13 +1,14 @@
 ﻿// JavaScript Document
 //Set up vairaibles
 
+// all fabric number -= 2
 var fabric = {
   "29089":["BASKETBALL", 60, 80],
   "28979":["BASKETBALL", 60, 80],
   "20365":["BASKETBALL", 60, 90],
   "29192":["BASKETBALL", 58, 90],
   "9851":["BASKETBALL", 62, 60],
-  "9087":["BASKETBALL", 62, 60],
+  "9087":["BASKETBALL", 54, 60],
   "20324":["TRACK", 62, 80],
   "9052":["TRACK", 60, 60],
   "29084":["TRACK", 62, 60],
@@ -268,7 +269,7 @@ function main(){
 
   var ab = app.activeDocument.artboards[0];
   $.writeln("fabric: "+fabric_size);
-  resize_artboard(ab, fabric_size, 120);
+  resize_artboard(ab, fabric_size-2, 120);
 
   for (var size in size_order) {
     // Get all files matching the pattern
