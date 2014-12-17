@@ -2,7 +2,9 @@
 //Set up vairaibles
 
 // all fabric number -= 2
-var fabric = {
+var OUTPUT_FOLDER = "x:\\Danial Test\\output";
+var CUTCODE_TEXTFRAME;
+var FABRIC_LIST = {
   "29089":["BASKETBALL", 60, 80],
   "28979":["BASKETBALL", 60, 80],
   "20365":["BASKETBALL", 60, 90],
@@ -106,7 +108,8 @@ var PrintBoard = function(artboard){
   this.width = artboard.artboardRect[2];
   this.height = artboard.artboardRect[3];
   this.insert_points = [];
-  this.insert_points.push([dot_size, -dot_size]);
+  
+  this.insert_points.push([dot_size, -dot_size-20]);
   this.pieces = [];
   this.dots = [];
 
@@ -224,6 +227,93 @@ function import_piece(doc, filename){
   return new RectPiece(pi);
 };
 
+var Task = function(folder){
+  var _this = this;
+
+  var group_files = function(folder){
+    var re = new RegExp(".*\\.(ai|eps|pdf)$", "i");
+    var files = folder.getFiles(function(f){return f.displayName.match(re);});///\.(ai|eps|pdf)$/i);
+    var size_groups = {};
+    for ( var i = 0; i < files.length; i++){
+      var attr = files[i].displayName.split("_");
+      var size;
+      var fabric;
+      if ( attr[0]=="" ){
+        attr = attr.slice(1);
+      }
+      size = attr[0];
+      fabric = attr[1]=="FLAT"?attr[2]:attr[1];
+      fabric = fabric.replace("FLAT", "");
+
+      if ( ! (size in size_groups) ){
+        size_groups[size] = {};
+      }
+
+      var size_group = size_groups[size];
+      if ( ! (fabric in size_group) ){
+        size_group[fabric] = [files[i]];
+      } else{
+        size_group[fabric].push(files[i]);
+      }
+    }
+    return size_groups;
+  };
+
+  var init = function(folder){
+    _this.folder = folder;
+    var folder_fields = folder.displayName.split("_");
+    _this.log = folder_fields[0];
+    _this.unit_count = folder_fields[1];
+
+    _this.size_groups = group_files(folder);
+  };
+
+  this.export_all = function(){
+    var global_seq = 0;
+    for ( var size in this.size_groups){
+      var size_group = this.size_groups[size];
+      for ( var fabric in size_group ){
+        var fabric_width = FABRIC_LIST[fabric][1];
+        var ab = app.activeDocument.artboards[0];
+        $.writeln("fabric: "+fabric + "--> " + fabric_width);
+        resize_artboard(ab, fabric_width-2, 120);
+
+        // Get all files matching the pattern
+        var files = size_group[fabric];
+
+        var pieces = import_all(files);
+        pieces.sort(function(a, b)
+            {
+              var ar = a.get_rect();
+              var br = b.get_rect();
+              return -(((ar.w*ar.h)-(br.w*br.h))||(ar.h-br.h));
+            });
+
+        // prepare folder
+        var output_folder = new Folder(OUTPUT_FOLDER + "\\" + [log, fabric, unit_count].join('_'));
+        if ( ! output_folder.exists ){
+          output_folder.create();
+        }
+        //
+        // export
+        var size_seq = 0;
+        while(pieces.length > 0){
+          var pb = new PrintBoard(ab);
+          CUTCODE_TEXTFRAME.contents = [log, global_seq++].join("_");
+          redraw();
+          pb.import_pieces(pieces);
+
+          pb.export_pdf(output_folder + "\\" + [log, fabric, size, size_seq++].join('_') +".pdf");
+          pb.remove_all();
+        }
+      }
+    }
+
+  };
+
+  init(folder);
+}
+
 
 function get_fabric_size(folder){
   var fabric_code = function(folder){
@@ -233,9 +323,8 @@ function get_fabric_size(folder){
     return fabric_code;
   }(folder);
 
-  if (fabric_code in fabric){
-    var item = fabric[fabric_code];
-    var size = fabric[fabric_code][1];
+  if (fabric_code in FABRIC_LIST){
+    var size = FABRIC_LIST[fabric_code][1];
     return size;
   }
 }
@@ -261,7 +350,20 @@ function main(){
 
   if(!sourceFolder)
     return;
-  // If a valid folder is selected
+
+  // Point Text
+  var pointTextRef = app.activeDocument.textFrames.add();
+  pointTextRef.contents = "TextFrame #3";
+  pointTextRef.top = -20;
+  pointTextRef.left = 10;
+
+  CUTCODE_TEXTFRAME = pointTextRef;
+
+  var task = new Task(sourceFolder);
+  task.export_all();
+  CUTCODE_TEXTFRAME.remove();
+
+/*  // If a valid folder is selected
   var fabric_size = get_fabric_size(sourceFolder);
   if (!fabric_size)
     return "Fabric Error!";
@@ -270,6 +372,12 @@ function main(){
   var ab = app.activeDocument.artboards[0];
   $.writeln("fabric: "+fabric_size);
   resize_artboard(ab, fabric_size-2, 120);
+
+  //log#
+  //Fabric#
+  //total units
+  //size
+  //count
 
   for (var size in size_order) {
     // Get all files matching the pattern
@@ -291,7 +399,7 @@ function main(){
       pb.export_pdf(sourceFolder+"\\"+pieces.length+"_"+size_order[size]+'_files_left.pdf');
       pb.remove_all();
     }
-  }
+  }*/
 }
 
 main();
