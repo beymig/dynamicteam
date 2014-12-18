@@ -2,7 +2,8 @@
 //Set up vairaibles
 
 // all fabric number -= 2
-var OUTPUT_FOLDER = "x:\\Danial Test\\output";
+var OUTPUT_FOLDER = "d:\\Danial Test\\output";
+var CUT_OUTPUT_FOLDER = "d:\\Danial Test\\cut";
 var CUTCODE_TEXTFRAME;
 var FABRIC_LIST = {
   "29089":["BASKETBALL", 60, 80],
@@ -107,6 +108,7 @@ var PrintBoard = function(artboard){
   $.writeln(artboard.artboardRect);
   this.width = artboard.artboardRect[2];
   this.height = artboard.artboardRect[3];
+  this.lowest = 0;
   this.insert_points = [];
   
   this.insert_points.push([dot_size, -dot_size-20]);
@@ -198,6 +200,9 @@ var PrintBoard = function(artboard){
 
     dot.move_to(point);
     this.dots.push(dot);
+    var bottom = dot.get_rect().b;
+    if (bottom < this.lowest)
+      this.lowest = bottom;
   };
 
   this.place_dot_around = function(rect){
@@ -231,8 +236,9 @@ var Task = function(folder){
   var _this = this;
 
   var group_files = function(folder){
-    var re = new RegExp(".*\\.(ai|eps|pdf)$", "i");
-    var files = folder.getFiles(function(f){return f.displayName.match(re);});///\.(ai|eps|pdf)$/i);
+    //var re = new RegExp(".*\\.(ai|eps|pdf)$", "i");
+    //var files = folder.getFiles(function(f){return f.displayName.match(re);});///\.(ai|eps|pdf)$/i);
+    var files = folder.getFiles(/\.(ai|eps|pdf)$/i);
     var size_groups = {};
     for ( var i = 0; i < files.length; i++){
       var attr = files[i].displayName.split("_");
@@ -290,7 +296,7 @@ var Task = function(folder){
             });
 
         // prepare folder
-        var output_folder = new Folder(OUTPUT_FOLDER + "\\" + [log, fabric, unit_count].join('_'));
+        var output_folder = new Folder(OUTPUT_FOLDER + "\\" + [this.log, fabric, this.unit_count, "total"].join('_'));
         if ( ! output_folder.exists ){
           output_folder.create();
         }
@@ -299,12 +305,21 @@ var Task = function(folder){
         var size_seq = 0;
         while(pieces.length > 0){
           var pb = new PrintBoard(ab);
-          CUTCODE_TEXTFRAME.contents = [log, global_seq++].join("_");
+          var timestamp = (new Date()).getTime();
+          CUTCODE_TEXTFRAME.contents = [this.log, fabric, size, "cut", global_seq, timestamp].join("_");
           redraw();
           pb.import_pieces(pieces);
+          ab.artboardRect = [0, 0, (new UnitValue(fabric_width-2, "in")).as ('px'), pb.lowest];
 
-          pb.export_pdf(output_folder + "\\" + [log, fabric, size, size_seq++].join('_') +".pdf");
+
+          var cut_file = CUT_OUTPUT_FOLDER+"\\" + [this.log, "cut", global_seq, timestamp].join("_")+".pdf";
+          var print_file = output_folder + "\\" + [this.log, fabric, size, size_seq++, "cut", global_seq++].join('_') +".pdf";
+          pb.export_pdf(print_file);
+          var pf = File(print_file);
+          pf.copy(cut_file);
+
           pb.remove_all();
+          resize_artboard(ab, fabric_width-2, 120);
         }
       }
     }
@@ -353,53 +368,40 @@ function main(){
 
   // Point Text
   var pointTextRef = app.activeDocument.textFrames.add();
-  pointTextRef.contents = "TextFrame #3";
+  pointTextRef.contents = "";
   pointTextRef.top = -20;
   pointTextRef.left = 10;
+
+  // resize text
+  //
+  var docRef = app.activeDocument;
+  var charStyle;
+  try{
+    charStyle = docRef.characterStyles.getByName("BigRed");
+  }catch(e) {
+  }
+  if (!charStyle){
+    charStyle = docRef.characterStyles.add("BigRed");
+    // set character attributes
+    var charAttr = charStyle.characterAttributes;
+    charAttr.size = 20;
+    charAttr.tracking = -30;
+    charAttr.capitalization = FontCapsOption.ALLCAPS;
+    var redColor = new RGBColor();
+    redColor.red = 255;
+    redColor.green = 0;
+    redColor.blue = 0;
+    charAttr.fillColor = redColor;
+  }
+  // apply to each textFrame in the document
+  charStyle.applyTo(docRef.textFrames[0].textRange);
+
 
   CUTCODE_TEXTFRAME = pointTextRef;
 
   var task = new Task(sourceFolder);
   task.export_all();
   CUTCODE_TEXTFRAME.remove();
-
-/*  // If a valid folder is selected
-  var fabric_size = get_fabric_size(sourceFolder);
-  if (!fabric_size)
-    return "Fabric Error!";
-
-
-  var ab = app.activeDocument.artboards[0];
-  $.writeln("fabric: "+fabric_size);
-  resize_artboard(ab, fabric_size-2, 120);
-
-  //log#
-  //Fabric#
-  //total units
-  //size
-  //count
-
-  for (var size in size_order) {
-    // Get all files matching the pattern
-    var re = new RegExp("^(_|)"+size_order[size]+".*\\.(ai|eps|pdf)$", "i");
-    var files = sourceFolder.getFiles(function(f){return f.displayName.match(re);});///\.(ai|eps|pdf)$/i);
-
-    var pieces = import_all(files);
-    pieces.sort(function(a, b)
-        {
-          var ar = a.get_rect();
-          var br = b.get_rect();
-          return -(((ar.w*ar.h)-(br.w*br.h))||(ar.h-br.h));
-        });
-
-    while(pieces.length > 0){
-      var pb = new PrintBoard(ab);
-      pb.import_pieces(pieces);
-
-      pb.export_pdf(sourceFolder+"\\"+pieces.length+"_"+size_order[size]+'_files_left.pdf');
-      pb.remove_all();
-    }
-  }*/
 }
 
 main();
