@@ -102,6 +102,11 @@ function RectPiece(pageitem){
   this.remove = function(){
     pi.remove();
   }
+
+  this.flip = function(){
+    var m  = app.getScaleMatrix(-100,100);
+    pi.transform(m);
+  }
 }
 
 var PrintBoard = function(artboard){
@@ -306,7 +311,7 @@ var Task = function(folder){
         while(pieces.length > 0){
           var pb = new PrintBoard(ab);
           var timestamp = (new Date()).getTime();
-          CUTCODE_TEXTFRAME.contents = [this.log, fabric, size, "cut", global_seq, timestamp].join("_");
+          CUTCODE_TEXTFRAME.contents = [this.log, fabric, size, "cut", global_seq].join("_");
           redraw();
           pb.import_pieces(pieces);
           ab.artboardRect = [0, 0, (new UnitValue(fabric_width-2, "in")).as ('px'), pb.lowest];
@@ -315,11 +320,20 @@ var Task = function(folder){
           var cut_file = CUT_OUTPUT_FOLDER+"\\" + [this.log, "cut", global_seq, timestamp].join("_")+".pdf";
           var print_file = output_folder + "\\" + [this.log, fabric, size, size_seq++, "cut", global_seq++].join('_') +".pdf";
           pb.export_pdf(print_file);
-          var pf = File(print_file);
-          pf.copy(cut_file);
+          //var pf = File(print_file);
+          //pf.copy(cut_file);
 
           pb.remove_all();
-          resize_artboard(ab, fabric_width-2, 120);
+          CUTCODE_TEXTFRAME.contents = "";
+          
+          //
+          var cutpiece = import_piece(app.activeDocument, print_file);
+          cutpiece.move_to([0,0]);
+          cutpiece.flip();
+          pb.export_pdf(cut_file);
+          cutpiece.remove();
+
+          //resize_artboard(ab, fabric_width-2, 120);
         }
       }
     }
