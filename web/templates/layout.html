@@ -16,28 +16,28 @@
 
   <title>DynamicTeam - Dashboard</title>
   <!-- Bootstrap core CSS -->
-  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css">
+  <link href="/static/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/static/bootstrap-theme.min.css">
   <!-- Custom styles for this template -->
   <link ref=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+  <script src="/static/jquery.min.js"></script>
 </head>
 <body role="document">
   <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
     <div class="container">
       <div class="navbar-header">
+        <a class="navbar-brand" href="/">Dynamic Team</a>
         <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
           <span class="sr-only">Toggle navigation</span>
           <span class="icon-bar"></span>
           <span class="icon-bar"></span>
           <span class="icon-bar"></span>
         </button>
-        <a class="navbar-brand" href="#">Dynamic Team</a>
       </div>
       <div id="navbar" class="navbar-collapse collapse">
         <ul class="nav navbar-nav">
-          <li class="active"><a href="#">OverView</a></li>
-          <li><a href="#about">PrintRoom</a></li>
+          <li class="active"><a href="/">OverView</a></li>
+          <li id="nav-printroom"><a href="/printroom">PrintRoom</a></li>
           
         </ul>
         <ul class="nav navbar-nav navbar-right">
@@ -55,7 +55,7 @@
     {% endfor %}
     {% block body %}{% endblock %}
   </div>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+  <script src="/static/bootstrap.min.js"></script>
   <!--script src="../../assets/js/docs.min.js"></script-->
 </body>
 </html>

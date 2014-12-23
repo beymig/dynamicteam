@@ -41,11 +41,11 @@ def add_task():
   return redirect(url_for('show_tasks'))
 
 @app.route('/')
-@app.route('/tasks')
+@app.route('/printroom')
 def show_tasks():
   cur = g.db.execute('select log, fabric, daystogo, units, length from tasks order by daystogo asc')
   tasks = [dict(log=row[0], fabric=row[1], daystogo=row[2], units=row[3], length=row[4]) for row in cur.fetchall()]
-  return render_template('bootstrap_task_view.html', tasks=tasks)
+  return render_template('printroom_view.html', tasks=tasks)
 
 @app.route('/add', methods=['GET'])
 def hello(name=None):

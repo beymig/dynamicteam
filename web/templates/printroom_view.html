@@ -3,6 +3,9 @@
 <script>
 $( document ).ready(function() {
     $('#tasks .btn').attr('disabled', 'disabled');
+
+    $('.navbar-nav li').removeClass('active');
+    $('.navbar-nav #nav-printroom').addClass('active');
     $( '#printers .btn' ).on('click', function(){
       var btn = $(this);
       if ( btn.hasClass("btn-success")) {
