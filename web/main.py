@@ -1,56 +1,53 @@
+import os
+from datetime import datetime, timedelta
 import sqlite3
 from flask import Flask, request, session, g, redirect, url_for, abort, render_template, flash
+from flask.ext.sqlalchemy import SQLAlchemy
 from contextlib import closing
 
 DATABASE = 'flask.db'
 app = Flask(__name__)
-app.config.from_object(__name__)
+#app.config.from_object(__name__)
+basedir = os.path.abspath(os.path.dirname(__file__))
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///'+os.path.join(basedir, "flask.db")
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost/dynamicteam'
+db = SQLAlchemy(app)
 
-def connect_db():
-  return sqlite3.connect(app.config['DATABASE'])
+class Task(db.Model):
+  id = db.Column(db.Integer, primary_key=True)
+  log = db.Column(db.String(10), nullable=False)
+  fabric = db.Column(db.String(20))
+  daystogo = db.Column(db.Date)
+  units = db.Column(db.Integer)
+  length = db.Column(db.Integer)
 
-def init_db():
-  with closing(connect_db()) as db:
-    with app.open_resource('schema.sql', mode='r') as f:
-      db.cursor().executescript(f.read())
+  def __init__(self, log, fabric=None, daystogo=None, units=None, length=None):
+    self.log = log
+    self.fabric = fabric
+    self.daystogo = daystogo
+    self.units = units
+    self.length = length
 
-    db.commit()
+  def __repr__(self):
+    return 'id:%d: %s|%s|%s|%d|%d'%(self.id, self.log, self.fabric, self.daystogo, self.units, self.length)
 
-@app.before_request
-def before_request():
-  g.db = connect_db()
-
-@app.teardown_request
-def teardown_request(exception):
-  db = getattr(g, 'db', None)
-  if db is not None:
-    db.close()
-
-'''@app.route('/')
-def show_tasks():
-  cur = g.db.execute('select log, fabric, daystogo, units, length from tasks order by daystogo desc')
-  tasks = [dict(log=row[0], fabric=row[1], daystogo=row[2], units=row[3], length=row[4]) for row in cur.fetchall()]
-  return render_template('task_view.html', tasks=tasks)'''
 
 @app.route('/add', methods=['POST'])
 def add_task():
-  g.db.execute('insert into tasks (log, fabric, daystogo, units, length) values (?, ?, ?, ?, ?)',
-      [request.form['log'], request.form['fabric'], int(request.form['daystogo']), int(request.form['units']), int(request.form['length'])])
-  result = g.db.commit()
-  flash(result)
+  t = Task(request.form['log'], request.form['fabric'], datetime.now()+timedelta(days=int(request.form['daystogo'])), int(request.form['units']), int(request.form['length']))
+  db.session.add(t)
+  db.session.commit()
   return redirect(url_for('show_tasks'))
 
 @app.route('/')
 @app.route('/printroom')
 def show_tasks():
-  cur = g.db.execute('select log, fabric, daystogo, units, length from tasks order by daystogo asc')
-  tasks = [dict(log=row[0], fabric=row[1], daystogo=row[2], units=row[3], length=row[4]) for row in cur.fetchall()]
+  tasks = Task.query.order_by(Task.daystogo).all()
   return render_template('printroom_view.html', tasks=tasks)
 
 @app.route('/add', methods=['GET'])
 def hello(name=None):
-  cur = g.db.execute('select log, fabric, daystogo, units, length from tasks order by daystogo asc')
-  tasks = [dict(log=row[0], fabric=row[1], daystogo=row[2], units=row[3], length=row[4]) for row in cur.fetchall()]
+  tasks = Task.query.order_by(Task.daystogo).all()
   return render_template('task_view.html', tasks=tasks)
 
 
