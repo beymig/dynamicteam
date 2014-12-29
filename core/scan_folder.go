@@ -56,45 +56,57 @@ func scanForNewTask(src string, dst string) error {
 
 	fmt.Printf("scanner start.\n  src:\t%s.\n  dst:\t%s.\n", src, dst)
 	for {
-		taskInfos, err := filepath.Glob(src + "\\*\\task.info")
+		task_folders, err := filepath.Glob(src + "\\combined_*in")
 		if err != nil {
 			return err
 		}
 
-		var doneFiles []string
+		/*var doneFiles []string
 		for _, fname := range taskInfos {
 			// if tail f == done
 			if fileEndWith(fname, "@end") {
 				doneFiles = append(doneFiles, fname)
 			}
-		}
+		}*/
 
 		// sleep for 2 secs then do task
 		//fmt.Println("Sleepping...")
-		time.Sleep(2 * time.Second)
-		for _, fname := range doneFiles {
-			folderpath := filepath.Dir(fname)
-			foldername := filepath.Base(folderpath)
-			dstpath := path.Join(dst, foldername)
+		//time.Sleep(2 * time.Second)
+		for _, fpath := range task_folders {
+			//folderpath := filepath.Dir(fname)
+			foldername := filepath.Base(fpath)
 			fmt.Println("New task discovered: " + foldername)
-			err = os.Rename(folderpath, dstpath)
-			if err != nil {
-				fmt.Println(err)
-				fmt.Printf("Move folder failed.\n  From:\t%s.\n  To:\t%s.\n", folderpath, dstpath)
-				continue
-			}
 
+			//var log, fabric string
+			//var units, length int
+
+			/*if c, err := fmt.Sscanf(foldername, "combined_%s_%s_%d_%din", &log, &fabric, &units, &length); err != nil || c < 4 {
+				fmt.Println(err)
+				fmt.Printf("\n", foldername, log, fabric, units, length)
+				continue
+			}*/
 			attrs := strings.Split(foldername, "_")
-			log, fabric := attrs[0], attrs[1]
-			units, _ := strconv.Atoi(attrs[2])
+			log, fabric := attrs[1], attrs[2]
+			units, _ := strconv.Atoi(attrs[3])
+			length, _ := strconv.Atoi(strings.TrimSuffix(attrs[4], "in"))
 			// get info from task.info
 			// insert data into database
-			_, err = con.Exec("insert into task (log, fabric, units) values(?, ?, ?)", log, fabric, units)
+			_, err = con.Exec("insert into task (log, fabric, units, length) values(?, ?, ?, ?)", log, fabric, units, length)
 			if err != nil {
 				return err
 			}
-			fmt.Println(fmt.Sprint("Task %s wait to print", foldername))
+
+			dstpath := path.Join(dst, foldername) //strings.Replace(foldername, "combined", "task", 1))
+			err = os.Rename(fpath, dstpath)
+			if err != nil {
+				fmt.Println(err)
+				fmt.Printf("Move folder failed.\n  From:\t%s.\n  To:\t%s.\n", fpath, dstpath)
+				continue
+			}
+
+			fmt.Println(foldername, "wait to print")
 		}
+		time.Sleep(2 * time.Second)
 	}
 }
 

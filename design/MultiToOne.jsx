@@ -1,55 +1,8 @@
 ﻿// JavaScript Document
 //Set up vairaibles
+#include "m2o_cfg.jsx"
 
 // all fabric number -= 2
-var OUTPUT_FOLDER = "d:\\Danial Test\\output";
-var CUT_OUTPUT_FOLDER = "d:\\Danial Test\\cut";
-var CUTCODE_TEXTFRAME;
-var FABRIC_LIST = {
-  "29089":["BASKETBALL", 60, 80],
-  "28979":["BASKETBALL", 60, 80],
-  "20365":["BASKETBALL", 60, 90],
-  "29192":["BASKETBALL", 58, 90],
-  "9851":["BASKETBALL", 62, 60],
-  "9087":["BASKETBALL", 54, 60],
-  "20324":["TRACK", 62, 80],
-  "9052":["TRACK", 60, 60],
-  "29084":["TRACK", 62, 60],
-  "340880":["RACER KILT", 60, 50],
-  "9017":["WRESTLING", 60, 90],
-  "20337":["VOLLYBALL", 58, 60],
-  "20316":["VOLLYBALL", 58, 60],
-  "20439":["VOLLYBALL", 58, 60],
-  "29121":["SOCCER", 62, 80],
-  "28878":["SOCCER TRIM", 62, 70],
-  "29209":["TRIM", 60, 50],
-  "29127":["LACROSSE", 60, 90],
-  "29287":["LACROSSE", 54, 70],
-  "29176":["LACROSSE", 54, 70],
-  "1649":["DYNA-DRY", 60, 60],
-  "2031":["DYNA-DRY", 60, 60],
-  "AEROFIBER":["DYNAMIC", 62, 90],
-  "DRY-TEC":["DYNAMIC", 60, 90],
-  "DAZZLE":["DYNAMIC", 60, 90],
-  "5235":["FLEX-DRY", 63, 90],
-  "RICE-MESH":["DYNAMIC", 61, 90],
-  "STRECH-TEC":["DYNAMIC", 64, 90],
-  "791-PANTS":["HEAVY POLYESTER", 64, 90],
-  "298-JERSEY":["HEAVY POLYESTER", 60, 90],
-  "5377 9.5 oz":["HEAVY WEIGHT", 63, 90],
-  "AIR-MESH":["DYNAMIC", 60, 80],
-  "HEAVY DAZZLE":["DYNAMIC", 60, 80],
-  "POLY-FLEX":["DYNAMIC", 64, 90],
-  "20365":["DYNAMIC", 61, 90],
-  "1997":["NIKE", 54, 80],
-  "1887":["NIKE", 55, 80],
-  "5106":["NIKE", 62, 80],
-};
-
-var size_order = ["AXXXXLT", "AXXXLT","AXXLT", "AXLT", "ALT", "AMT", "AST", "AXXXXL", "AXXXL", "AXXL", "AXL", "AL", "AM", "AS", "AXS", "AXXS", "YXXL", "YXL", "YL", "YM", "YS"];
-
-var dot_size = 30;
-
 function Rect(ltwh){
   this.l = ltwh[0];
   this.t = ltwh[1];
@@ -116,7 +69,7 @@ var PrintBoard = function(artboard){
   this.lowest = 0;
   this.insert_points = [];
   
-  this.insert_points.push([dot_size, -dot_size-20]);
+  this.insert_points.push([DOT_SIZE, -DOT_SIZE-20]);
   this.pieces = [];
   this.dots = [];
 
@@ -153,7 +106,7 @@ var PrintBoard = function(artboard){
   {
     //var piece = new RectPiece(pageitem);
     var rect = piece.get_rect();
-    ex_rect = rect.get_expand_rect(dot_size);
+    ex_rect = rect.get_expand_rect(DOT_SIZE);
     for(var i=0; i<this.insert_points.length; i++)
     {
       var tr = ex_rect.get_copy_at(this.insert_points[i]);
@@ -191,8 +144,8 @@ var PrintBoard = function(artboard){
     piece.move_to(point);
     this.place_dot_around(rect);
     this.pieces.push(piece);
-    this.insert_points.push([rect.r+dot_size, rect.t]);
-    this.insert_points.push([rect.l, rect.b-dot_size]);//piece.y-piece.height]);
+    this.insert_points.push([rect.r+DOT_SIZE, rect.t]);
+    this.insert_points.push([rect.l, rect.b-DOT_SIZE]);//piece.y-piece.height]);
     this.insert_points.sort(function(a, b)
       {
         return -(a[1]-b[1])|| (a[0] - b[0]);
@@ -200,7 +153,7 @@ var PrintBoard = function(artboard){
   };
 
   this.place_dot_at = function(point){
-    var dot = import_piece(app.activeDocument, "d:\\workspace\\dynamicteam\\dot.pdf");
+    var dot = import_piece(app.activeDocument, DOT_FILE);
     //var piece = new RectPiece(dot);
 
     dot.move_to(point);
@@ -213,20 +166,20 @@ var PrintBoard = function(artboard){
   this.place_dot_around = function(rect){
     var position;
     // left
-    var high = Math.floor(rect.t/dot_size);
-    var low = Math.ceil(rect.b/dot_size);
-    position = [rect.l-dot_size+5, dot_size*(high-Math.floor((high-low)/3))];
+    var high = Math.floor(rect.t/DOT_SIZE);
+    var low = Math.ceil(rect.b/DOT_SIZE);
+    position = [rect.l-DOT_SIZE+5, DOT_SIZE*(high-Math.floor((high-low)/3))];
     this.place_dot_at(position);
     // top
-    var left = Math.ceil(rect.l/dot_size);
-    var right = Math.floor(rect.r/dot_size);
-    position = [dot_size*(left+Math.floor((right-left)/3)), rect.t+dot_size-5];
+    var left = Math.ceil(rect.l/DOT_SIZE);
+    var right = Math.floor(rect.r/DOT_SIZE);
+    position = [DOT_SIZE*(left+Math.floor((right-left)/3)), rect.t+DOT_SIZE-5];
     this.place_dot_at(position);
     // right
-    position = [rect.r+5, dot_size*(low+Math.floor((high-low)/3))];
+    position = [rect.r+5, DOT_SIZE*(low+Math.floor((high-low)/3))];
     this.place_dot_at(position);
     // bottom
-    position = [dot_size*(right-Math.floor((right-left)/3)), rect.b-5];
+    position = [DOT_SIZE*(right-Math.floor((right-left)/3)), rect.b-5];
     this.place_dot_at(position);
   };
 }
@@ -281,6 +234,7 @@ var Task = function(folder){
 
   this.export_all = function(){
     var global_seq = 0;
+    var sub_folders = {};
     for ( var size in this.size_groups){
       var size_group = this.size_groups[size];
       for ( var fabric in size_group ){
@@ -301,24 +255,31 @@ var Task = function(folder){
             });
 
         // prepare folder
-        var output_folder = new Folder(OUTPUT_FOLDER + "\\" + [this.log, fabric, this.unit_count, "total"].join('_'));
+        var folder_id = [this.log, fabric, this.unit_count].join('_');
+        var output_folder = new Folder(OUTPUT_FOLDER + "\\" + [COMBINING_PREFIX, folder_id].join('_'));
         if ( ! output_folder.exists ){
           output_folder.create();
+          sub_folders[folder_id]=0;
         }
+        $.writeln("export to: "+output_folder);
+        
         //
         // export
         var size_seq = 0;
         while(pieces.length > 0){
+          var filename = [this.log, fabric, size, size_seq++].join('_') +".pdf";
+
           var pb = new PrintBoard(ab);
-          var timestamp = (new Date()).getTime();
-          CUTCODE_TEXTFRAME.contents = [this.log, fabric, size, "cut", global_seq].join("_");
+          //var timestamp = (new Date()).getTime();
+          CUTCODE_TEXTFRAME.contents = filename;//[this.log, fabric, size, "cut", global_seq++].join("_");
           redraw();
           pb.import_pieces(pieces);
           ab.artboardRect = [0, 0, (new UnitValue(fabric_width-2, "in")).as ('px'), pb.lowest];
+          sub_folders[folder_id] += Math.ceil((new UnitValue(-pb.lowest, "px")).as ('in'));
 
 
-          var cut_file = CUT_OUTPUT_FOLDER+"\\" + [this.log, "cut", global_seq, timestamp].join("_")+".pdf";
-          var print_file = output_folder + "\\" + [this.log, fabric, size, size_seq++, "cut", global_seq++].join('_') +".pdf";
+          var cut_file = CUT_OUTPUT_FOLDER+"\\" + filename;//[this.log, "cut", global_seq, timestamp].join("_")+".pdf";
+          var print_file = output_folder + "\\" + filename;//[this.log, fabric, size, size_seq++, "cut", global_seq++].join('_') +".pdf";
           pb.export_pdf(print_file);
           //var pf = File(print_file);
           //pf.copy(cut_file);
@@ -337,7 +298,15 @@ var Task = function(folder){
         }
       }
     }
-
+    for (var folder_id in sub_folders) {
+      //var total_length = (new UnitValue(sub_folders[folder_id], "px")).as ('in');
+      var sub_folder = new Folder(OUTPUT_FOLDER + "\\" + [COMBINING_PREFIX, folder_id].join('_'));
+      var ok = sub_folder.rename(OUTPUT_FOLDER + "\\" + [COMBINED_PREFIX, folder_id, sub_folders[folder_id].toString()+"in"].join('_'));
+      if(!ok)
+        $.writeln("Rename failed: "+sub_folder);
+      else
+        $.writeln("Rename to: "+sub_folder);
+    }
   };
 
   init(folder);
