@@ -1,3 +1,5 @@
 {
-  "monitor_folder":"d:\\daniel_test\\output"
-} 10:00 - 15:15
+  "NewTaskFolder":"d:\\daniel_test\\output",
+  "WaitToPrintFolder":"d:\\daniel_test\\waitprint"
+}
+@end
