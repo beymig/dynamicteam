@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
+	"io"
+	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -16,6 +18,7 @@ import (
 type Configuration struct {
 	NewTaskFolder     string
 	WaitToPrintFolder string
+	HotFolder         string
 }
 
 func load_config(file string) Configuration {
@@ -27,6 +30,17 @@ func load_config(file string) Configuration {
 		fmt.Println("error:", err)
 	}
 	return cfg
+}
+
+func load_printers(file string) map[string]string {
+	var printers map[string]string
+	f, _ := os.Open(file)
+	decoder := json.NewDecoder(f)
+	err := decoder.Decode(&printers)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	return printers
 }
 
 func fileEndWith(fname string, s string) bool {
@@ -47,10 +61,13 @@ func fileEndWith(fname string, s string) bool {
 	return strings.Contains(string(buf), s)
 }
 
-func scanForNewTask(src string, dst string) error {
+func scanForNewTask(cfg Configuration, cerr chan error) {
+	//cfg := load_config("cfg.json")
+	src, dst := cfg.NewTaskFolder, cfg.WaitToPrintFolder
 	con, err := sql.Open("mysql", "root:@/dynamicteam")
 	if err != nil {
-		return err
+		cerr <- err
+		return
 	}
 	defer con.Close()
 
@@ -58,60 +75,125 @@ func scanForNewTask(src string, dst string) error {
 	for {
 		task_folders, err := filepath.Glob(src + "\\combined_*in")
 		if err != nil {
-			return err
+			cerr <- err
+			continue
 		}
 
-		/*var doneFiles []string
-		for _, fname := range taskInfos {
-			// if tail f == done
-			if fileEndWith(fname, "@end") {
-				doneFiles = append(doneFiles, fname)
-			}
-		}*/
-
-		// sleep for 2 secs then do task
-		//fmt.Println("Sleepping...")
-		//time.Sleep(2 * time.Second)
 		for _, fpath := range task_folders {
 			//folderpath := filepath.Dir(fname)
 			foldername := filepath.Base(fpath)
-			fmt.Println("New task discovered: " + foldername)
+			folderid := strings.TrimPrefix(foldername, "combined_")
+			fmt.Println("New task discovered: " + folderid)
 
-			//var log, fabric string
-			//var units, length int
+			attrs := strings.Split(folderid, "_")
+			log, fabric := attrs[0], attrs[1]
+			units, _ := strconv.Atoi(attrs[2])
+			length, _ := strconv.Atoi(strings.TrimSuffix(attrs[3], "in"))
 
-			/*if c, err := fmt.Sscanf(foldername, "combined_%s_%s_%d_%din", &log, &fabric, &units, &length); err != nil || c < 4 {
-				fmt.Println(err)
-				fmt.Printf("\n", foldername, log, fabric, units, length)
-				continue
-			}*/
-			attrs := strings.Split(foldername, "_")
-			log, fabric := attrs[1], attrs[2]
-			units, _ := strconv.Atoi(attrs[3])
-			length, _ := strconv.Atoi(strings.TrimSuffix(attrs[4], "in"))
-			// get info from task.info
 			// insert data into database
-			_, err = con.Exec("insert into task (log, fabric, units, length) values(?, ?, ?, ?)", log, fabric, units, length)
+			_, err = con.Exec("insert into task (log, fabric, units, length, folderid) values(?, ?, ?, ?, ?)", log, fabric, units, length, folderid)
 			if err != nil {
-				return err
+				cerr <- err
+				continue
 			}
 
-			dstpath := path.Join(dst, foldername) //strings.Replace(foldername, "combined", "task", 1))
+			dstpath := path.Join(dst, folderid) //foldername) //
 			err = os.Rename(fpath, dstpath)
 			if err != nil {
 				fmt.Println(err)
 				fmt.Printf("Move folder failed.\n  From:\t%s.\n  To:\t%s.\n", fpath, dstpath)
+				cerr <- err
 				continue
 			}
 
-			fmt.Println(foldername, "wait to print")
+			fmt.Println(folderid, "wait to print")
 		}
 		time.Sleep(2 * time.Second)
 	}
 }
 
+func copyFile(dst, src string) (err error) {
+	in, err := os.Open(src)
+	if err != nil {
+		return
+	}
+	defer in.Close()
+	out, err := os.Create(dst)
+	if err != nil {
+		return
+	}
+	defer func() {
+		cerr := out.Close()
+		if err == nil {
+			err = cerr
+		}
+	}()
+	if _, err = io.Copy(out, in); err != nil {
+		return
+	}
+	err = out.Sync()
+	return
+}
+
+func dispatchPrintJob(cfg Configuration, cerr chan error) {
+	taskfolder := cfg.WaitToPrintFolder
+	hotfolder := cfg.HotFolder
+	printers := load_printers("printers.json")
+
+	con, err := sql.Open("mysql", "root:@/dynamicteam")
+	if err != nil {
+		cerr <- err
+		return
+	}
+	defer con.Close()
+
+	for {
+		// query from db
+		rows, err := con.Query("SELECT id, folderid, printer from task WHERE status='assigned'")
+		if err != nil {
+			fmt.Println("Dispatch error:", err)
+			continue
+		}
+
+	NextRow:
+		for rows.Next() {
+			var id int
+			var folderid, printer string
+			if err = rows.Scan(&id, &folderid, &printer); err != nil || printers[printer] == "" {
+				fmt.Println("Dispatch get value err:", err, printer, "not exist")
+				continue
+			}
+			fmt.Println(id, folderid, printer)
+			// copy files to hotfolder
+			printerFolder := path.Join(hotfolder, printers[printer])
+			pdfFiles, err := ioutil.ReadDir(path.Join(taskfolder, folderid))
+			for _, pdfFile := range pdfFiles {
+				fname := pdfFile.Name()
+				fmt.Println(fname)
+				srcpath := path.Join(taskfolder, folderid, fname)
+				dstpath := path.Join(printerFolder, fname)
+				if err = copyFile(dstpath, srcpath); err != nil {
+					fmt.Println("Dispatch job failed. ", err, "copy file failed")
+					continue NextRow
+				}
+			}
+			if c, err := con.Exec("update task set status='dispatched' where id=?", id); err != nil {
+				fmt.Println(c, err)
+			}
+		}
+		// if has job
+		rows.Close()
+		time.Sleep(1 * time.Second)
+	}
+}
+
 func main() {
+	cscan := make(chan error, 20)
+	cdisp := make(chan error, 20)
 	cfg := load_config("cfg.json")
-	err := scanForNewTask(cfg.NewTaskFolder, cfg.WaitToPrintFolder)
-	fmt.Println("scanForNewTask() returned %v", err)
+	go scanForNewTask(cfg, cscan) //
+	go dispatchPrintJob(cfg, cdisp)
+	<-cscan
+	<-cdisp
+	//fmt.Println("scanForNewTask() returned %v", err)
 }

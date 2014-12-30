@@ -1,6 +1,17 @@
 {% extends "layout.html" %}
 {% block body %}
 <script>
+var selected_printer = "";
+function sendjob(taskid, printer){
+  $.post("{{ url_for('sendjob') }}", 
+    {
+      taskid:taskid,
+      printerid:selected_printer
+      }, function(){
+      window.location.href = "{{ url_for('show_tasks') }}";
+      });
+}
+
 $( document ).ready(function() {
     $('#tasks .btn').attr('disabled', 'disabled');
 
@@ -10,13 +21,16 @@ $( document ).ready(function() {
       var btn = $(this);
       if ( btn.hasClass("btn-success")) {
         btn.removeClass('btn-success').addClass('btn-default');
-        $('#tasks .btn').attr('disabled', 'disabled');
+        $('#tasks .dyt-task-new').attr('disabled', 'disabled');
+        selected_printer = None;
       }else {
         $('#printers .btn-success').removeClass('btn-success').addClass('btn-default');
         btn.addClass('btn-success');
-        $('#tasks .btn').removeAttr('disabled');
+        $('#tasks .dyt-task-new').removeAttr('disabled');
+        selected_printer = btn.attr('id');//btn.id;
+        var a = selected_printer;
       }
-      });
+    });
 });
 </script>
 <div class="col-sm-9 col-sm-offset-3 col-md-9 col-md-offset-2 main">
@@ -29,7 +43,7 @@ $( document ).ready(function() {
         <div role="toolbar" class="btn-toolbar">
           <div class="btn-group">
             {% for printer in (1,2,3,20,21,22) %}
-            <button class="btn btn-default" type="button">{{ "%02d"|format(printer) }}</button>
+            <button class="btn btn-default" id="P-ERS{{ "%02d"|format(printer) }}" type="button">{{ "%02d"|format(printer) }}</button>
             {% endfor %}
           </div>
         </div>
@@ -39,7 +53,7 @@ $( document ).ready(function() {
         <div role="toolbar" class="btn-toolbar">
           <div class="btn-group">
             {% for printer in (1,2) %}
-            <button class="btn btn-default" type="button">{{ "%02d"|format(printer) }}</button>
+            <button class="btn btn-default" id="P-ER{{ "%02d"|format(printer) }}" type="button">{{ "%02d"|format(printer) }}</button>
             {% endfor %}
           </div>
         </div>
@@ -49,7 +63,7 @@ $( document ).ready(function() {
         <div role="toolbar" class="btn-toolbar">
           <div class="btn-group">
             {% for printer in (25, 26, 27) %}
-            <button class="btn btn-default" type="button">{{ "%02d"|format(printer) }}</button>
+            <button class="btn btn-default" id="P-Mimaki{{ "%02d"|format(printer) }}" type="button">{{ "%02d"|format(printer) }}</button>
             {% endfor %}
           </div>
         </div>
@@ -61,7 +75,7 @@ $( document ).ready(function() {
       <div role="toolbar" class="btn-toolbar">
         <div class="btn-group">
           {% for printer in range(4,19) %}
-          <button class="btn btn-default" type="button">{{ "%02d"|format(printer) }}</button>
+          <button class="btn btn-default" id="P-E{{ "%02d"|format(printer) }}" type="button">{{ "%02d"|format(printer) }}</button>
           {% endfor %}
         </div>
       </div>
@@ -72,7 +86,7 @@ $( document ).ready(function() {
       <div role="toolbar" class="btn-toolbar">
         <div class="btn-group">
           {% for printer in range(4,19) %}
-          <button class="btn btn-default" type="button">{{ "%02d"|format(printer) }}</button>
+          <button class="btn btn-default" id="P-EN{{ "%02d"|format(printer) }}" type="button">{{ "%02d"|format(printer) }}</button>
           {% endfor %}
         </div>
       </div>
@@ -100,7 +114,7 @@ $( document ).ready(function() {
           <td>{{ task.daystogo }}</td>
           <td>{{ task.units }}</td>
           <td>{{ task.length }}</td>
-          <td><button class="btn btn-primary btn-sm" type="button">Send Task</button></td>
+          <td><button type="button" class="btn btn-sm {% if task.printer %} btn-warning dyt-task-assigned">To:{{ task.printer }} {% else %}btn-primary dyt-task-new" onclick="sendjob({{ task.id }}, selected_printer);">Send Task {% endif %}</button></td>
         </tr>
         {% endfor %}
       </tbody>

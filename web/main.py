@@ -20,16 +20,22 @@ class Task(db.Model):
   daystogo = db.Column(db.Date)
   units = db.Column(db.Integer)
   length = db.Column(db.Integer)
+  printer = db.Column(db.String(20))
+  status = db.Column(db.String(20))
+  folderid = db.Column(db.String(50))
 
-  def __init__(self, log, fabric=None, daystogo=None, units=None, length=None):
+  def __init__(self, log, fabric=None, daystogo=None, units=None, length=None, printer=None, status=None, folderid=None):
     self.log = log
     self.fabric = fabric
     self.daystogo = daystogo
     self.units = units
     self.length = length
+    self.printer = printer
+    self.status = status
+    self.folderid = folderid
 
   def __repr__(self):
-    return 'id:%d: %s|%s|%s|%d|%d'%(self.id, self.log, self.fabric, self.daystogo, self.units, self.length)
+    return 'id:%d: %s|%s|%s|%d|%d|%s'%(self.id, self.log, self.fabric, self.daystogo, self.units, self.length, self.printer)
 
 
 @app.route('/add', methods=['POST'])
@@ -42,7 +48,9 @@ def add_task():
 @app.route('/')
 @app.route('/printroom')
 def show_tasks():
-  tasks = Task.query.order_by(Task.daystogo).all()
+  #tasks = Task.query.order_by(Task.daystogo).filter(Task.status.in_(("assigned", None)))
+  tasks = Task.query.order_by(Task.daystogo).filter(Task.status.in_(("assigned", ""))).all()
+  tasks.extend(Task.query.order_by(Task.daystogo).filter_by(status=None).all())
   return render_template('printroom_view.html', tasks=tasks)
 
 @app.route('/add', methods=['GET'])
@@ -50,7 +58,15 @@ def hello(name=None):
   tasks = Task.query.order_by(Task.daystogo).all()
   return render_template('task_view.html', tasks=tasks)
 
+@app.route('/sendjob', methods=['POST'])
+def sendjob():
+  taskid, printid = int(request.form['taskid']), request.form['printerid']
+  t = Task.query.get(taskid)
+  t.printer = printid
+  t.status = "assigned"
+  db.session.commit()
+  return redirect(url_for('show_tasks'))
 
 if __name__ == '__main__':
   app.debug = True
-  app.run()
+  app.run(host='0.0.0.0')
