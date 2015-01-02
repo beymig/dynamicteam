@@ -280,7 +280,7 @@ var Task = function(folder){
 
           var cut_file = CUT_OUTPUT_FOLDER+"\\" + filename;//[this.log, "cut", global_seq, timestamp].join("_")+".pdf";
           var print_file = output_folder + "\\" + filename;//[this.log, fabric, size, size_seq++, "cut", global_seq++].join('_') +".pdf";
-          pb.export_pdf(print_file);
+          pb.export_pdf(cut_file);
           //var pf = File(print_file);
           //pf.copy(cut_file);
 
@@ -288,10 +288,10 @@ var Task = function(folder){
           CUTCODE_TEXTFRAME.contents = "";
           
           //
-          var cutpiece = import_piece(app.activeDocument, print_file);
+          var cutpiece = import_piece(app.activeDocument, cut_file);
           cutpiece.move_to([0,0]);
           cutpiece.flip();
-          pb.export_pdf(cut_file);
+          pb.export_pdf(print_file);
           cutpiece.remove();
 
           //resize_artboard(ab, fabric_width-2, 120);
