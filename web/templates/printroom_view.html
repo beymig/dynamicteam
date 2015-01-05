@@ -94,7 +94,13 @@ $( document ).ready(function() {
   </div>
 
   <div id="tasks" class="row placeholders">
-    <h2 class="page-header">Pending Tasks</h2>
+    <p class="page-header"></p>
+    <ul class="nav nav-pills" role="tablist">
+      <li role="presentation" {% if view=='' %} class="active" {% endif %}><a href="{{ url_for('show_tasks') }}">Waiting<span class="badge">25</span></a></li>
+      {% for d in range(6) %}
+      <li role="presentation" {% if view=='day-%d'%d %} class="active" {% endif %}><a href="{{ url_for('show_tasks') }}?view={{ "day-%d"|format(d) }}">{{ "day-%d"|format(d) }}<span class="badge">38</span></a></li>
+      {% endfor %}
+    </ul>
     <table class="table table-striped table-condensed">
       <thead>
         <tr>
@@ -103,7 +109,7 @@ $( document ).ready(function() {
           <th>DaysToGo</th>
           <th>Units</th>
           <th>Length</th>
-          <th>Action</th>
+          <th>{% if view=='' %} Action {% else %} Printer {% endif %}</th>
         </tr>
       </thead>
       <tbody>
@@ -114,7 +120,15 @@ $( document ).ready(function() {
           <td>{{ task.daystogo }}</td>
           <td>{{ task.units }}</td>
           <td>{{ task.length }}</td>
-          <td><button type="button" class="btn btn-sm {% if task.printer %} btn-warning dyt-task-assigned">To:{{ task.printer }} {% else %}btn-primary dyt-task-new" onclick="sendjob({{ task.id }}, selected_printer);">Send Task {% endif %}</button></td>
+          {% if task.printer %}
+            {% if task.status=="dispatched" %}
+              <td>{{ task.printer }}</td>
+            {% else %}
+              <td><button type="button" class="btn btn-sm btn-warning dyt-task-assigned">To:{{ task.printer }}</button></td>
+            {% endif %}
+          {% else %}
+            <td><button type="button" class="btn btn-sm btn-primary dyt-task-new" onclick="sendjob({{ task.id }}, selected_printer);">Send Task</button></td>
+          {% endif %}
         </tr>
         {% endfor %}
       </tbody>

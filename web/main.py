@@ -1,5 +1,5 @@
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import sqlite3
 from flask import Flask, request, session, g, redirect, url_for, abort, render_template, flash
 from flask.ext.sqlalchemy import SQLAlchemy
@@ -63,12 +63,19 @@ def add_task():
   return redirect(url_for('show_tasks'))
 
 @app.route('/')
-@app.route('/printroom')
+@app.route('/printroom', methods=['GET'])
 def show_tasks():
+  view_type = request.args.get("view", "")
   #tasks = Task.query.order_by(Task.daystogo).filter(Task.status.in_(("assigned", None)))
-  tasks = Task.query.order_by(Task.daystogo).filter(Task.status.in_(("assigned", ""))).all()
-  tasks.extend(Task.query.order_by(Task.daystogo).filter_by(status=None).all())
-  return render_template('printroom_view.html', tasks=tasks)
+  if view_type=="":
+    tasks = Task.query.order_by(Task.daystogo).filter(Task.status.in_(("assigned", ""))).all()
+    tasks.extend(Task.query.order_by(Task.daystogo).filter_by(status=None).all())
+  else:
+    day_before = int(view_type.split('-')[1])
+    date_from = date.today()-timedelta(days=day_before)
+    date_to = date.today()-timedelta(days=day_before-1)
+    tasks = Task.query.filter_by(status="dispatched").filter(Task.modify_at.between(date_from, date_to)).all()
+  return render_template('printroom_view.html', view=view_type, tasks=tasks)
 
 @app.route('/add', methods=['GET'])
 def hello(name=None):
