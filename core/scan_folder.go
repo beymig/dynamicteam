@@ -148,6 +148,50 @@ func copyFile(dst, src string) (err error) {
 	return
 }
 
+func dispatchReprintSheets(con *sql.DB, cfg Configuration, printers map[string]string) error {
+	taskfolder := cfg.WaitToPrintFolder
+	hotfolder := cfg.HotFolder
+
+	rows, err := con.Query("SELECT id, task_id, src, printer from sheet WHERE status='assigned'")
+	if err != nil {
+		fmt.Println("Dispatch error:", err)
+		return err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var sheetid, taskid int
+		var src, printer string
+		if err = rows.Scan(&sheetid, &taskid, &src, &printer); err != nil {
+			fmt.Println("Sheet scan error", err)
+			return err
+		}
+		taskrows, err := con.Query("SELECT folderid from task WHERE id=?", taskid)
+		taskrows.Next()
+		var folderid string
+		if err = taskrows.Scan(&folderid); err != nil {
+			fmt.Println("Sheet scan task error", err)
+			return err
+		}
+		defer taskrows.Close()
+
+		printerFolder := path.Join(hotfolder, printers[printer])
+		srcFolder := path.Join(taskfolder, folderid)
+		srcpath := path.Join(srcFolder, src)
+		dstpath := path.Join(printerFolder, src)
+		if err = copyFile(dstpath, srcpath); err != nil {
+			fmt.Println("Sheet copy error", err)
+			return err
+		}
+		if _, err := con.Exec("update sheet set status='dispatched' where id=?", sheetid); err != nil {
+			fmt.Println("update sheet error", err)
+			return err
+		}
+		fmt.Println(sheetid, taskid, src, printer)
+	}
+	return nil
+}
+
 func dispatchPrintJob(cfg Configuration, cerr chan error) {
 	taskfolder := cfg.WaitToPrintFolder
 	hotfolder := cfg.HotFolder
@@ -227,6 +271,10 @@ func dispatchPrintJob(cfg Configuration, cerr chan error) {
 		}
 		// if has job
 		rows.Close()
+
+		if err = dispatchReprintSheets(con, cfg, printers); err != nil {
+			fmt.Println("dispatchReprintSheets error:", err)
+		}
 		time.Sleep(1 * time.Second)
 	}
 }
@@ -251,7 +299,7 @@ func generateRollReport(rollInfo RollInfo, fpath string) (err error) {
 	pdf.Cell(5, 0, fmt.Sprintf("FABRIC: %s-(1/3)", rollInfo.Fabric))
 	pdf.Cell(3, 0, fmt.Sprintf("Uints: %d", rollInfo.Units))
 	pdf.Cell(6, 0, fmt.Sprintf("ROLL LENGTH: %d.IN", rollInfo.Height))
-	pdf.Cell(6, 0, fmt.Sprintf("DaysToGo: %s", rollInfo.DaysToGo.Format("12/Jun/2015")))
+	pdf.Cell(6, 0, fmt.Sprintf("DaysToGo: %s", rollInfo.DaysToGo.Format("02/Jan/2006")))
 	pdf.SetFont("Arial", "B", 126)
 	pdf.SetXY(8, 3)
 	pdf.Cell(30, 0, "CUT PAPER HERE!")

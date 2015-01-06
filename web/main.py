@@ -102,6 +102,7 @@ def sendjob():
   t.modify_at = datetime.now()
   t.status = "assigned"
   db.session.commit()
+
   return redirect(url_for('show_tasks'))
 
 @app.route('/printroom/printsheets', methods=['POST'])
@@ -112,6 +113,12 @@ def printsheets():
   print("printer", printer)
   print("sheets", sheet_list)
   sheets=sheet_list.split(',')
+  for sheetid in sheets:
+    s = Sheet.query.get(sheetid)
+    s.printer = printer
+    s.status = "assigned"
+
+  db.session.commit()
   #sheets = form['sheets']
   #print("sheets", sheets, "##".join(sheets))
   return render_template("echo.html", content="##".join(sheets))
