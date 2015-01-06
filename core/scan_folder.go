@@ -86,7 +86,7 @@ func scanForNewTask(cfg Configuration, cerr chan error) {
 
 	fmt.Printf("scanner start.\n  src:\t%s.\n  dst:\t%s.\n", src, dst)
 	for {
-		task_folders, err := filepath.Glob(src + "\\combined_*in")
+		task_folders, err := filepath.Glob(src + "\\combined_*in_*")
 		if err != nil {
 			cerr <- err
 			continue
@@ -231,7 +231,7 @@ func dispatchPrintJob(cfg Configuration, cerr chan error) {
 			cutSheet := path.Join(srcFolder, "task_report.pdf")
 			if err = generateRollReport(RollInfo{
 				Log:      log,
-				Fabric:   fabric,
+				Fabric:   fmt.Sprintf("%s(%s)", fabric, strings.Split(folderid, "_")[4]),
 				Printer:  printer,
 				Height:   length,
 				DaysToGo: daystogo,
@@ -296,7 +296,7 @@ func generateRollReport(rollInfo RollInfo, fpath string) (err error) {
 	pdf.SetXY(0, 1)
 	pdf.Cell(1, 0, "")
 	pdf.Cell(4, 0, fmt.Sprintf("LOG: %s", rollInfo.Log))
-	pdf.Cell(5, 0, fmt.Sprintf("FABRIC: %s-(1/3)", rollInfo.Fabric))
+	pdf.Cell(5, 0, fmt.Sprintf("FABRIC: %s", rollInfo.Fabric))
 	pdf.Cell(3, 0, fmt.Sprintf("Uints: %d", rollInfo.Units))
 	pdf.Cell(6, 0, fmt.Sprintf("ROLL LENGTH: %d.IN", rollInfo.Height))
 	pdf.Cell(6, 0, fmt.Sprintf("DaysToGo: %s", rollInfo.DaysToGo.Format("02/Jan/2006")))

@@ -60,6 +60,10 @@ function RectPiece(pageitem){
     var m  = app.getScaleMatrix(-100,100);
     pi.transform(m);
   }
+
+  this.pageitem = function(){
+    return pi;
+  }
 }
 
 var PrintBoard = function(artboard){
@@ -190,6 +194,37 @@ function import_piece(doc, filename){
   return new RectPiece(pi);
 };
 
+function getRidOfCutLine(colorName)
+{
+  var doc, items, i = 0, n = 0, item, color, selectionArray = [];
+  doc = app.activeDocument;
+  try
+  {
+      color = doc.swatches.getByName ( colorName );
+  }
+  catch(e)
+  {
+      return;
+  }
+
+  color = color.color ;
+
+  items = doc.pageItems;
+  for ( i = 0; i < items.length ; i++ )
+  {
+      item = items[i];
+      if ( item.fillColor && item.fillColor.typename == color.typename
+      && item.fillColor.cyan == color.cyan
+      && item.fillColor.magenta == color.magenta
+      && item.fillColor.yellow == color.yellow
+      && item.fillColor.black == color.black )
+      {
+        item.remove();
+      }
+  }
+}
+
+
 var Task = function(folder){
   var _this = this;
 
@@ -291,17 +326,26 @@ var Task = function(folder){
           var cutpiece = import_piece(app.activeDocument, cut_file);
           cutpiece.move_to([0,0]);
           cutpiece.flip();
+          //cutpiece.pageitem().embed();
+          //getRidOfCutLine("Thru-Cut");
           pb.export_pdf(print_file);
+          //app.activeDocument.pageItems.removeAll();
           cutpiece.remove();
 
           //resize_artboard(ab, fabric_width-2, 120);
         }
       }
     }
+    var i = 0;
+    var folder_count = 0;
+    for( id in sub_folders)
+      folder_count++;
+
     for (var folder_id in sub_folders) {
+      i++;
       //var total_length = (new UnitValue(sub_folders[folder_id], "px")).as ('in');
       var sub_folder = new Folder(OUTPUT_FOLDER + "\\" + [COMBINING_PREFIX, folder_id].join('_'));
-      var ok = sub_folder.rename(OUTPUT_FOLDER + "\\" + [COMBINED_PREFIX, folder_id, sub_folders[folder_id].toString()+"in"].join('_'));
+      var ok = sub_folder.rename(OUTPUT_FOLDER + "\\" + [COMBINED_PREFIX, folder_id, sub_folders[folder_id].toString()+"in", i.toString()+"-"+folder_count.toString()].join('_'));
       if(!ok)
         $.writeln("Rename failed: "+sub_folder);
       else
