@@ -44,13 +44,15 @@ class Sheet(db.Model):
   id = db.Column(db.Integer, primary_key=True)
   src = db.Column(db.String(120), nullable=False)
   status = db.Column(db.String(20))
+  printer = db.Column(db.String(20))
   task_id = db.Column(db.Integer, db.ForeignKey('task.id'))
   task = db.relationship("Task", backref=db.backref('sheets', lazy='dynamic'))
 
-  def __init__(self, src, task, status=""):
+  def __init__(self, src, task, status="", printer=""):
     self.src = src
     self.status = status
     self.task = task
+    self.printer = printer
 
   def __repr__(self):
     return "id:%d|%s|%s|%d"%(self.id, self.src, self.status, self.task_id)
@@ -66,6 +68,16 @@ def add_task():
 @app.route('/printroom', methods=['GET'])
 def show_tasks():
   view_type = request.args.get("view", "")
+  today = date.today()
+  waiting = Task.query.order_by(Task.daystogo).filter(Task.status.in_(("assigned", ""))).count()
+  waiting += Task.query.order_by(Task.daystogo).filter_by(status=None).count()
+  task_counts = [waiting]
+  for i in range(6):
+    date_from = date.today()-timedelta(days=i)
+    date_to = date.today()-timedelta(days=i-1)
+    count = Task.query.filter_by(status="dispatched").filter(Task.modify_at.between(date_from, date_to)).count()
+    task_counts.append(count)
+
   #tasks = Task.query.order_by(Task.daystogo).filter(Task.status.in_(("assigned", None)))
   if view_type=="":
     tasks = Task.query.order_by(Task.daystogo).filter(Task.status.in_(("assigned", ""))).all()
@@ -75,7 +87,7 @@ def show_tasks():
     date_from = date.today()-timedelta(days=day_before)
     date_to = date.today()-timedelta(days=day_before-1)
     tasks = Task.query.filter_by(status="dispatched").filter(Task.modify_at.between(date_from, date_to)).all()
-  return render_template('printroom_view.html', view=view_type, tasks=tasks)
+  return render_template('printroom_view.html', view=view_type, tasks=tasks, task_counts=task_counts)
 
 @app.route('/add', methods=['GET'])
 def hello(name=None):
@@ -91,6 +103,18 @@ def sendjob():
   t.status = "assigned"
   db.session.commit()
   return redirect(url_for('show_tasks'))
+
+@app.route('/printroom/printsheets', methods=['POST'])
+def printsheets():
+  form = request.form
+  printer = form['printerid']
+  sheet_list = form['sheets']
+  print("printer", printer)
+  print("sheets", sheet_list)
+  sheets=sheet_list.split(',')
+  #sheets = form['sheets']
+  #print("sheets", sheets, "##".join(sheets))
+  return render_template("echo.html", content="##".join(sheets))
 
 if __name__ == '__main__':
   app.debug = True
