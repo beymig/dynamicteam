@@ -20,6 +20,7 @@ type Configuration struct {
 	NewTaskFolder     string
 	WaitToPrintFolder string
 	HotFolder         string
+	DBStr             string
 }
 
 type RollInfo struct {
@@ -77,7 +78,7 @@ func fileEndWith(fname string, s string) bool {
 func scanForNewTask(cfg Configuration, cerr chan error) {
 	//cfg := load_config("cfg.json")
 	src, dst := cfg.NewTaskFolder, cfg.WaitToPrintFolder
-	con, err := sql.Open("mysql", "root:@/dynamicteam_test")
+	con, err := sql.Open("mysql", cfg.DBStr)
 	if err != nil {
 		cerr <- err
 		return
@@ -197,7 +198,7 @@ func dispatchPrintJob(cfg Configuration, cerr chan error) {
 	hotfolder := cfg.HotFolder
 	printers := load_printers("printers.json")
 
-	con, err := sql.Open("mysql", "root:@/dynamicteam_test?parseTime=true")
+	con, err := sql.Open("mysql", cfg.DBStr+"?parseTime=true")
 	if err != nil {
 		cerr <- err
 		return

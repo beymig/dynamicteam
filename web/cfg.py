@@ -1,0 +1,1 @@
+DBStr = "root:@localhost/dynamicteam"
