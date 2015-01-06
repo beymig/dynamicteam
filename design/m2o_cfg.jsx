@@ -1,5 +1,5 @@
 
-var OUTPUT_FOLDER = "d:\\daniel_test\\output";
+var OUTPUT_FOLDER = "d:\\daniel_test\\READY FOR PRINT";
 var CUT_OUTPUT_FOLDER = "d:\\daniel_test\\cut";
 var COMBINING_PREFIX = "combining"
 var COMBINED_PREFIX = "combined"
