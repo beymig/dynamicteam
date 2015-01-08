@@ -244,7 +244,7 @@ func dispatchPrintJob(cfg Configuration, cerr chan error) {
 			pdfFiles, err := ioutil.ReadDir(taskFolder)
 
 			// insert cut-sheet
-			cutSheet := path.Join(taskFolder, "task_report.pdf")
+			cutSheet := path.Join(taskFolder, fmt.Sprintf("%s_%s_task%d_report.pdf", log, fabric, id))
 			if err = generateRollReport(RollInfo{
 				Log:      log,
 				Fabric:   fmt.Sprintf("%s(%s)", fabric, strings.Split(folderid, "_")[4]),
