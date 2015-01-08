@@ -1,6 +1,7 @@
 {
   "NewTaskFolder":"d:\\daniel_test\\READY FOR PRINT\\",
   "WaitToPrintFolder":"d:\\daniel_test\\WAIT FOR PRINT\\",
+  "DoneFolder":"d:\\daniel_test\\DISPATCHED_TASKS",
   "HotFolder":"d:\\daniel_test\\Hot Folders",
   "DBStr":"root:dynamicteam@/dynamicteam"
 }
