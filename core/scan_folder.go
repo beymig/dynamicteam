@@ -19,6 +19,7 @@ import (
 type Configuration struct {
 	NewTaskFolder     string
 	WaitToPrintFolder string
+	DoneFolder        string
 	HotFolder         string
 	DBStr             string
 }
@@ -150,7 +151,7 @@ func copyFile(dst, src string) (err error) {
 }
 
 func dispatchReprintSheets(con *sql.DB, cfg Configuration, printers map[string]string) error {
-	taskfolder := cfg.WaitToPrintFolder
+	doneRoot := cfg.DoneFolder
 	hotfolder := cfg.HotFolder
 
 	rows, err := con.Query("SELECT id, task_id, src, printer from sheet WHERE status='assigned'")
@@ -167,6 +168,12 @@ func dispatchReprintSheets(con *sql.DB, cfg Configuration, printers map[string]s
 			fmt.Println("Sheet scan error", err)
 			return err
 		}
+
+		if _, err := con.Exec("update sheet set status='dispatching' where id=?", sheetid); err != nil {
+			fmt.Println("update sheet dispatching error", err)
+			return err
+		}
+
 		taskrows, err := con.Query("SELECT folderid from task WHERE id=?", taskid)
 		taskrows.Next()
 		var folderid string
@@ -177,7 +184,7 @@ func dispatchReprintSheets(con *sql.DB, cfg Configuration, printers map[string]s
 		defer taskrows.Close()
 
 		printerFolder := path.Join(hotfolder, printers[printer])
-		srcFolder := path.Join(taskfolder, folderid)
+		srcFolder := path.Join(doneRoot, folderid)
 		srcpath := path.Join(srcFolder, src)
 		dstpath := path.Join(printerFolder, src)
 		if err = copyFile(dstpath, srcpath); err != nil {
@@ -194,7 +201,8 @@ func dispatchReprintSheets(con *sql.DB, cfg Configuration, printers map[string]s
 }
 
 func dispatchPrintJob(cfg Configuration, cerr chan error) {
-	taskfolder := cfg.WaitToPrintFolder
+	newTaskRoot := cfg.WaitToPrintFolder
+	doneRoot := cfg.DoneFolder
 	hotfolder := cfg.HotFolder
 	printers := load_printers("printers.json")
 
@@ -222,14 +230,21 @@ func dispatchPrintJob(cfg Configuration, cerr chan error) {
 				fmt.Println("Dispatch get value err:", err, printer, "not exist")
 				continue
 			}
+
+			if c, err := con.Exec("update task set status='dispatching' where id=?", id); err != nil {
+				fmt.Println(c, err)
+				continue
+			}
+
 			fmt.Println(id, folderid, printer)
 			// copy files to hotfolder
 			printerFolder := path.Join(hotfolder, printers[printer])
-			srcFolder := path.Join(taskfolder, folderid)
-			pdfFiles, err := ioutil.ReadDir(srcFolder)
+			taskFolder := path.Join(newTaskRoot, folderid)
+			doneFolder := path.Join(doneRoot, folderid)
+			pdfFiles, err := ioutil.ReadDir(taskFolder)
 
 			// insert cut-sheet
-			cutSheet := path.Join(srcFolder, "task_report.pdf")
+			cutSheet := path.Join(taskFolder, "task_report.pdf")
 			if err = generateRollReport(RollInfo{
 				Log:      log,
 				Fabric:   fmt.Sprintf("%s(%s)", fabric, strings.Split(folderid, "_")[4]),
@@ -252,7 +267,7 @@ func dispatchPrintJob(cfg Configuration, cerr chan error) {
 			for _, pdfFile := range pdfFiles {
 				fname := pdfFile.Name()
 				fmt.Println(fname)
-				srcpath := path.Join(srcFolder, fname)
+				srcpath := path.Join(taskFolder, fname)
 				dstpath := path.Join(printerFolder, fname)
 				if err = copyFile(dstpath, srcpath); err != nil {
 					fmt.Println("Dispatch job failed. ", err, "copy file failed")
@@ -264,6 +279,14 @@ func dispatchPrintJob(cfg Configuration, cerr chan error) {
 					cerr <- err
 					continue NextRow
 				}
+			}
+
+			err = os.Rename(taskFolder, doneFolder)
+			if err != nil {
+				fmt.Println(err)
+				fmt.Printf("Move folder failed.\n  From:\t%s.\n  To:\t%s.\n", taskFolder, doneFolder)
+				cerr <- err
+				continue
 			}
 
 			if c, err := con.Exec("update task set status='dispatched' where id=?", id); err != nil {

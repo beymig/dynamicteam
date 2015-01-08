@@ -70,8 +70,8 @@ def add_task():
 def show_tasks():
   view_type = request.args.get("view", "")
   today = date.today()
-  waiting = Task.query.order_by(Task.daystogo).filter(Task.status.in_(("assigned", ""))).count()
-  waiting += Task.query.order_by(Task.daystogo).filter_by(status=None).count()
+  waiting = Task.query.order_by(Task.daystogo).filter(Task.status != "dispatched").count()
+  #waiting += Task.query.order_by(Task.daystogo).filter_by(status=None).count()
   task_counts = [waiting]
   for i in range(6):
     date_from = date.today()-timedelta(days=i)
@@ -81,7 +81,7 @@ def show_tasks():
 
   #tasks = Task.query.order_by(Task.daystogo).filter(Task.status.in_(("assigned", None)))
   if view_type=="":
-    tasks = Task.query.order_by(Task.daystogo).filter(Task.status.in_(("assigned", ""))).all()
+    tasks = Task.query.order_by(Task.daystogo).filter(Task.status.in_(("assigned", "dispatching"))).all()
     tasks.extend(Task.query.order_by(Task.daystogo).filter_by(status=None).all())
   else:
     day_before = int(view_type.split('-')[1])
