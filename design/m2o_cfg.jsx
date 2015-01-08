@@ -1,9 +1,10 @@
-
-var OUTPUT_FOLDER = "d:\\daniel_test\\READY FOR PRINT";
-var CUT_OUTPUT_FOLDER = "d:\\daniel_test\\cut";
+﻿
+var OUTPUT_FOLDER = "R:\\NewTasks";
+var CUT_OUTPUT_FOLDER = "N:\\";
+var CUT_OUTPUT_FOLDER_MID = "r:\\READY_TO_CUT";
 var COMBINING_PREFIX = "combining"
 var COMBINED_PREFIX = "combined"
-var DOT_FILE = "d:\\workspace\\dynamicteam\\dot.pdf";
+var DOT_FILE = "R:\\daniel_test\\dot.pdf";
 var DOT_SIZE = 30;
 var CUTCODE_TEXTFRAME;
 var FABRIC_LIST = {
@@ -11,6 +12,7 @@ var FABRIC_LIST = {
   "28979":["BASKETBALL", 60, 80],
   "20365":["BASKETBALL", 60, 90],
   "29192":["BASKETBALL", 58, 90],
+  "MESH29192":["BASKETBALL", 58, 90],
   "9851":["BASKETBALL", 62, 60],
   "9087":["BASKETBALL", 54, 60],
   "20324":["TRACK", 62, 80],
@@ -27,8 +29,8 @@ var FABRIC_LIST = {
   "29127":["LACROSSE", 60, 90],
   "29287":["LACROSSE", 54, 70],
   "29176":["LACROSSE", 54, 70],
-  "1649":["DYNA-DRY", 60, 60],
-  "2031":["DYNA-DRY", 60, 60],
+  "1649 DYNA DRY":["DYNA-DRY", 60, 60],
+  "2031 DYNA DRY":["DYNA-DRY", 60, 60],
   "AEROFIBER":["DYNAMIC", 62, 90],
   "DRY-TEC":["DYNAMIC", 60, 90],
   "DAZZLE":["DYNAMIC", 60, 90],
@@ -43,6 +45,7 @@ var FABRIC_LIST = {
   "POLY-FLEX":["DYNAMIC", 64, 90],
   "20365":["DYNAMIC", 61, 90],
   "1997":["NIKE", 54, 80],
+  "1997-18":["NIKE", 54, 80],
   "1887":["NIKE", 55, 80],
   "5106":["NIKE", 62, 80],
 };

@@ -89,6 +89,7 @@ var PrintBoard = function(artboard){
   };
 
   this.export_pdf = function(filename){
+    $.write("export file:"+filename);
     var doc = app.activeDocument;
     var saveName = new File(filename);
     var saveOpts = new PDFSaveOptions();
@@ -97,6 +98,7 @@ var PrintBoard = function(artboard){
     saveOpts.preserveEditability = false;
     saveOpts.artboardRange = "1";
     doc.saveAs(saveName, saveOpts);
+    $.writeln("... done!");
   };
 
   this.remove_all = function(){
@@ -314,10 +316,11 @@ var Task = function(folder){
 
 
           var cut_file = CUT_OUTPUT_FOLDER+"\\" + filename;//[this.log, "cut", global_seq, timestamp].join("_")+".pdf";
+          var cut_file_mid = CUT_OUTPUT_FOLDER_MID+"\\" + filename;
           var print_file = output_folder + "\\" + filename;//[this.log, fabric, size, size_seq++, "cut", global_seq++].join('_') +".pdf";
-          pb.export_pdf(cut_file);
-          //var pf = File(print_file);
-          //pf.copy(cut_file);
+          pb.export_pdf(cut_file_mid);
+          var pf = File(cut_file_mid);
+          pf.copy(cut_file);
 
           pb.remove_all();
           CUTCODE_TEXTFRAME.contents = "";
@@ -375,9 +378,11 @@ function import_all(files){
   var pieces = [];
   var doc = app.activeDocument;
   for (var i = 0; i < files.length; i++) {
+    $.write("importing file:"+files[i]);
     var piece = import_piece(doc, files[i]);
     piece.show(false);
     pieces.push(piece);
+    $.writeln("... done!");
   }
   return pieces;
 }
