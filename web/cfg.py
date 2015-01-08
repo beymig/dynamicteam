@@ -1,1 +1,1 @@
-DBStr = "root:@localhost/dynamicteam"
+DBStr = "root:dynamicteam@localhost/dynamicteam"
