@@ -278,7 +278,7 @@ var Task = function(folder){
         var fabric_width = FABRIC_LIST[fabric][1];
         var ab = app.activeDocument.artboards[0];
         $.writeln("fabric: "+fabric + "--> " + fabric_width);
-        resize_artboard(ab, fabric_width-2, 120);
+        //resize_artboard(ab, fabric_width-2, 120);
 
         // Get all files matching the pattern
         var files = size_group[fabric];
@@ -300,12 +300,15 @@ var Task = function(folder){
         }
         $.writeln("export to: "+output_folder);
         
+        if(!(folder_id in sub_folder))
+          sub_folders[folder_id]=0;
         //
         // export
         var size_seq = 0;
         while(pieces.length > 0){
           var filename = [this.log, fabric, size, size_seq++].join('_') +".pdf";
 
+          resize_artboard(ab, fabric_width-2, 120);
           var pb = new PrintBoard(ab);
           //var timestamp = (new Date()).getTime();
           CUTCODE_TEXTFRAME.contents = filename;//[this.log, fabric, size, "cut", global_seq++].join("_");
