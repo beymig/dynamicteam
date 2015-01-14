@@ -12,6 +12,15 @@ function sendjob(taskid, printer){
       });
 }
 
+function deletejob(taskid, printer){
+  $.post("{{ url_for('deletejob') }}", 
+    {
+      taskid:taskid,
+      }, function(){
+      window.location.href = "{{ url_for('show_tasks') }}";
+      });
+}
+
 function reprint_sheets(panel_id, printer){
   var req = {
     printerid:printer,
@@ -61,7 +70,7 @@ $( document ).ready(function() {
   <div id="printers" class="row placeholders">
     <h4 class="page-header">Printers</h4>
     <div class="row">
-      <div class="col-md-4">
+      <div class="col-md-5">
         P-ERS
         <div role="toolbar" class="btn-toolbar">
           <div class="btn-group">
@@ -150,7 +159,14 @@ $( document ).ready(function() {
               <span class="col-xs-2"><button type="button" class="btn btn-sm btn-warning dyt-task-assigned">To:{{ task.printer }}</button></span>
             {% endif %}
           {% else %}
-            <span class="col-xs-2"><button type="button" class="btn btn-sm btn-primary dyt-task-new" onclick="sendjob({{ task.id }}, selected_printer);">Send Task</button></span>
+          <span class="col-xs-2">
+            <button type="button" class="btn btn-sm btn-success dyt-task-new" onclick="sendjob({{ task.id }}, selected_printer);">
+              <span class="glyphicon glyphicon-print" aria-hidden="true"></span>
+            </button>
+            <button type="button" class="btn btn-xs btn-danger" onclick="deletejob({{ task.id }});" aria-label="delete">
+              <span class="glyphicon glyphicon-minus" aria-hidden="true"></span>
+            </button>
+          </span>
           {% endif %}
       </div>
       {% if view!='' %}

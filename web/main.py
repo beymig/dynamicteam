@@ -106,6 +106,15 @@ def sendjob():
 
   return redirect(url_for('show_tasks'))
 
+@app.route('/deletejob', methods=['POST'])
+def deletejob():
+  taskid = int(request.form['taskid'])
+  t = Task.query.get(taskid)
+  db.session.delete(t)
+  db.session.commit()
+
+  return redirect(url_for('show_tasks'))
+
 @app.route('/printroom/printsheets', methods=['POST'])
 def printsheets():
   form = request.form
