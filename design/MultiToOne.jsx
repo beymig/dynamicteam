@@ -198,34 +198,34 @@ function import_piece(doc, filename){
 
 function getRidOfCutLine(colorName)
 {
-  var doc, items, i = 0, n = 0, item, color, selectionArray = [];
+  var doc, items, i = 0, n = 0, item, swcolor, selectionArray = [];
   doc = app.activeDocument;
   try
   {
-      color = doc.swatches.getByName ( colorName );
+      swcolor = doc.swatches.getByName ( colorName );
   }
   catch(e)
   {
       return;
   }
 
-  color = color.color ;
+  var color = swcolor.color.spot.color ;
 
   items = doc.pageItems;
   for ( i = 0; i < items.length ; i++ )
   {
-      item = items[i];
-      if ( item.fillColor && item.fillColor.typename == color.typename
-      && item.fillColor.cyan == color.cyan
-      && item.fillColor.magenta == color.magenta
-      && item.fillColor.yellow == color.yellow
-      && item.fillColor.black == color.black )
-      {
-        item.remove();
-      }
+    item = items[i];
+    if ( item.strokeColor && item.strokeColor.typename == swcolor.color.typename){
+      if(item.strokeColor.spot.color.cyan == color.cyan
+          && item.strokeColor.spot.color.magenta == color.magenta
+          && item.strokeColor.spot.color.yellow == color.yellow
+          && item.strokeColor.spot.color.black == color.black ){
+            item.remove();
+            $.writeln("remove cutline: ",i);
+          }
+    }
   }
 }
-
 
 var Task = function(folder){
   var _this = this;
@@ -300,7 +300,7 @@ var Task = function(folder){
         }
         $.writeln("export to: "+output_folder);
         
-        if(!(folder_id in sub_folder))
+        if(!(folder_id in sub_folders))
           sub_folders[folder_id]=0;
         //
         // export
@@ -321,6 +321,7 @@ var Task = function(folder){
           var cut_file = CUT_OUTPUT_FOLDER+"\\" + filename;//[this.log, "cut", global_seq, timestamp].join("_")+".pdf";
           var cut_file_mid = CUT_OUTPUT_FOLDER_MID+"\\" + filename;
           var print_file = output_folder + "\\" + filename;//[this.log, fabric, size, size_seq++, "cut", global_seq++].join('_') +".pdf";
+
           pb.export_pdf(cut_file_mid);
           var pf = File(cut_file_mid);
           pf.copy(cut_file);
@@ -329,14 +330,23 @@ var Task = function(folder){
           CUTCODE_TEXTFRAME.contents = "";
           
           //
-          var cutpiece = import_piece(app.activeDocument, cut_file);
+          var cutpiece = import_piece(app.activeDocument, cut_file_mid);
           cutpiece.move_to([0,0]);
           cutpiece.flip();
-          //cutpiece.pageitem().embed();
-          //getRidOfCutLine("Thru-Cut");
+          cutpiece.pageitem().embed();
+          
+          getRidOfCutLine("Thru-Cut");
           pb.export_pdf(print_file);
+
           //app.activeDocument.pageItems.removeAll();
-          cutpiece.remove();
+          items = app.activeDocument.pageItems;
+          for ( i = 0; i < items.length ; i++ )
+          {
+            if (items[i] != CUTCODE_TEXTFRAME){
+              if (!items[i].hidden)
+                items[i].remove();
+            }
+          }
 
           //resize_artboard(ab, fabric_width-2, 120);
         }
