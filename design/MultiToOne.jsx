@@ -300,7 +300,7 @@ var Task = function(folder){
         }
         $.writeln("export to: "+output_folder);
         
-        if(!(folder_id in sub_folder))
+        if(!(folder_id in sub_folders))
           sub_folders[folder_id]=0;
         //
         // export
