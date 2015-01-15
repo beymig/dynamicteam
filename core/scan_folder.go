@@ -244,15 +244,17 @@ func dispatchPrintJob(cfg Configuration, cerr chan error) {
 			pdfFiles, err := ioutil.ReadDir(taskFolder)
 
 			// insert cut-sheet
-			cutSheet := path.Join(taskFolder, fmt.Sprintf("%s_%s_task%d_report.pdf", log, fabric, id))
-			if err = generateRollReport(RollInfo{
+			cutSheet := path.Join(taskFolder, fmt.Sprintf("PrintLast_%s_%s_task%d_report.pdf", log, fabric, id))
+			firstSheet := path.Join(taskFolder, fmt.Sprintf("_PrintFirst_%s_%s_task%d_report.pdf", log, fabric, id))
+			rollInfo := RollInfo{
 				Log:      log,
 				Fabric:   fmt.Sprintf("%s(%s)", fabric, strings.Split(folderid, "_")[4]),
 				Printer:  printer,
 				Height:   length,
 				DaysToGo: daystogo,
 				Units:    units,
-			}, cutSheet); err != nil {
+			}
+			if err = generateRollReport(rollInfo, cutSheet, "CUT PAPER HERE!"); err != nil {
 				fmt.Println(err)
 				continue NextRow
 			}
@@ -263,6 +265,18 @@ func dispatchPrintJob(cfg Configuration, cerr chan error) {
 			}
 
 			pdfFiles = append(pdfFiles, cutSheetFile)
+
+			if err = generateRollReport(rollInfo, firstSheet, "START NEW ROLL!!"); err != nil {
+				fmt.Println(err)
+				continue NextRow
+			}
+			firstSheetFile, err := os.Stat(firstSheet)
+			if err != nil {
+				fmt.Println(err)
+				continue NextRow
+			}
+
+			pdfFiles = append([]os.FileInfo{firstSheetFile}, pdfFiles...)
 
 			for _, pdfFile := range pdfFiles {
 				fname := pdfFile.Name()
@@ -303,7 +317,7 @@ func dispatchPrintJob(cfg Configuration, cerr chan error) {
 	}
 }
 
-func generateRollReport(rollInfo RollInfo, fpath string) (err error) {
+func generateRollReport(rollInfo RollInfo, fpath string, prompt string) (err error) {
 	var initType gofpdf.InitType
 	var size gofpdf.SizeType
 	size.Wd = 30
@@ -326,7 +340,7 @@ func generateRollReport(rollInfo RollInfo, fpath string) (err error) {
 	pdf.Cell(6, 0, fmt.Sprintf("DaysToGo: %s", rollInfo.DaysToGo.Format("02/Jan/2006")))
 	pdf.SetFont("Arial", "B", 126)
 	pdf.SetXY(8, 3)
-	pdf.Cell(30, 0, "CUT PAPER HERE!")
+	pdf.Cell(30, 0, prompt) //"CUT PAPER HERE!")
 	if err = pdf.OutputFileAndClose(fpath); err != nil {
 		fmt.Println(err)
 	}
