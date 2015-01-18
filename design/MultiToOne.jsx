@@ -60,6 +60,10 @@ function RectPiece(pageitem){
     var m  = app.getScaleMatrix(-100,100);
     pi.transform(m);
   }
+
+  this.pageitem = function(){
+    return pi;
+  }
 }
 
 var PrintBoard = function(artboard){
@@ -85,6 +89,7 @@ var PrintBoard = function(artboard){
   };
 
   this.export_pdf = function(filename){
+    $.write("export file:"+filename);
     var doc = app.activeDocument;
     var saveName = new File(filename);
     var saveOpts = new PDFSaveOptions();
@@ -93,6 +98,7 @@ var PrintBoard = function(artboard){
     saveOpts.preserveEditability = false;
     saveOpts.artboardRange = "1";
     doc.saveAs(saveName, saveOpts);
+    $.writeln("... done!");
   };
 
   this.remove_all = function(){
@@ -190,6 +196,37 @@ function import_piece(doc, filename){
   return new RectPiece(pi);
 };
 
+function getRidOfCutLine(colorName)
+{
+  var doc, items, i = 0, n = 0, item, swcolor, selectionArray = [];
+  doc = app.activeDocument;
+  try
+  {
+      swcolor = doc.swatches.getByName ( colorName );
+  }
+  catch(e)
+  {
+      return;
+  }
+
+  var color = swcolor.color.spot.color ;
+
+  items = doc.pageItems;
+  for ( i = 0; i < items.length ; i++ )
+  {
+    item = items[i];
+    if ( item.strokeColor && item.strokeColor.typename == swcolor.color.typename){
+      if(item.strokeColor.spot.color.cyan == color.cyan
+          && item.strokeColor.spot.color.magenta == color.magenta
+          && item.strokeColor.spot.color.yellow == color.yellow
+          && item.strokeColor.spot.color.black == color.black ){
+            item.remove();
+            $.writeln("remove cutline: ",i);
+          }
+    }
+  }
+}
+
 var Task = function(folder){
   var _this = this;
 
@@ -241,7 +278,7 @@ var Task = function(folder){
         var fabric_width = FABRIC_LIST[fabric][1];
         var ab = app.activeDocument.artboards[0];
         $.writeln("fabric: "+fabric + "--> " + fabric_width);
-        resize_artboard(ab, fabric_width-2, 120);
+        //resize_artboard(ab, fabric_width-2, 120);
 
         // Get all files matching the pattern
         var files = size_group[fabric];
@@ -263,12 +300,15 @@ var Task = function(folder){
         }
         $.writeln("export to: "+output_folder);
         
+        if(!(folder_id in sub_folders))
+          sub_folders[folder_id]=0;
         //
         // export
         var size_seq = 0;
         while(pieces.length > 0){
           var filename = [this.log, fabric, size, size_seq++].join('_') +".pdf";
 
+          resize_artboard(ab, fabric_width-2, 120);
           var pb = new PrintBoard(ab);
           //var timestamp = (new Date()).getTime();
           CUTCODE_TEXTFRAME.contents = filename;//[this.log, fabric, size, "cut", global_seq++].join("_");
@@ -279,29 +319,49 @@ var Task = function(folder){
 
 
           var cut_file = CUT_OUTPUT_FOLDER+"\\" + filename;//[this.log, "cut", global_seq, timestamp].join("_")+".pdf";
+          var cut_file_mid = CUT_OUTPUT_FOLDER_MID+"\\" + filename;
           var print_file = output_folder + "\\" + filename;//[this.log, fabric, size, size_seq++, "cut", global_seq++].join('_') +".pdf";
-          pb.export_pdf(print_file);
-          //var pf = File(print_file);
-          //pf.copy(cut_file);
+
+          pb.export_pdf(cut_file_mid);
+          var pf = File(cut_file_mid);
+          pf.copy(cut_file);
 
           pb.remove_all();
           CUTCODE_TEXTFRAME.contents = "";
           
           //
-          var cutpiece = import_piece(app.activeDocument, print_file);
+          var cutpiece = import_piece(app.activeDocument, cut_file_mid);
           cutpiece.move_to([0,0]);
           cutpiece.flip();
-          pb.export_pdf(cut_file);
-          cutpiece.remove();
+          cutpiece.pageitem().embed();
+          
+          getRidOfCutLine("Thru-Cut");
+          pb.export_pdf(print_file);
+
+          //app.activeDocument.pageItems.removeAll();
+          items = app.activeDocument.pageItems;
+          for ( i = 0; i < items.length ; i++ )
+          {
+            if (items[i] != CUTCODE_TEXTFRAME){
+              if (!items[i].hidden)
+                items[i].remove();
+            }
+          }
 
           //resize_artboard(ab, fabric_width-2, 120);
         }
       }
     }
+    var i = 0;
+    var folder_count = 0;
+    for( id in sub_folders)
+      folder_count++;
+
     for (var folder_id in sub_folders) {
+      i++;
       //var total_length = (new UnitValue(sub_folders[folder_id], "px")).as ('in');
       var sub_folder = new Folder(OUTPUT_FOLDER + "\\" + [COMBINING_PREFIX, folder_id].join('_'));
-      var ok = sub_folder.rename(OUTPUT_FOLDER + "\\" + [COMBINED_PREFIX, folder_id, sub_folders[folder_id].toString()+"in"].join('_'));
+      var ok = sub_folder.rename(OUTPUT_FOLDER + "\\" + [COMBINED_PREFIX, folder_id, sub_folders[folder_id].toString()+"in", i.toString()+"-"+folder_count.toString()].join('_'));
       if(!ok)
         $.writeln("Rename failed: "+sub_folder);
       else
@@ -331,9 +391,11 @@ function import_all(files){
   var pieces = [];
   var doc = app.activeDocument;
   for (var i = 0; i < files.length; i++) {
+    $.write("importing file:"+files[i]);
     var piece = import_piece(doc, files[i]);
     piece.show(false);
     pieces.push(piece);
+    $.writeln("... done!");
   }
   return pieces;
 }

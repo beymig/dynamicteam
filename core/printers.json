@@ -1,9 +1,18 @@
 {
-"P-Mimaki25":"Mimaki_1",
-"P-Mimaki26":"Mimaki_2",
-"P-Mimaki27":"Mimaki_3",
-"P-ER01":"Roland_R1",
-"P-ER02":"Roland_R2"
+"P-Mimaki25":"Zund_Mimaki_1",
+"P-Mimaki26":"Zund_Mimaki_2",
+"P-Mimaki27":"Zund_Mimaki_3",
+"P-ERS01":"Zund_Printer__ERS01",
+"P-ERS02":"Zund_Printer_ERS02",
+"P-ERS03":"Zund_Printer_ERS03",
+"P-ERS20":"Zund_Printer__ERS20",
+"P-ERS21":"Zund_Printer__ERS21",
+"P-ERS22":"Zund_Printer__ERS22",
+"P-ER01":"Printer__ER1",
+"P-ER02":"Printer__ER2",
+"P-EN11":"Printer__EN11",
+"P-EN15":"Printer__EN15",
+"P-EN18":"Printer__EN18"
 }
 
 
