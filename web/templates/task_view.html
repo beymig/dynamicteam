@@ -1,0 +1,20 @@
+{% extends "layout.html" %}
+{% block body %}
+<form action="{{ url_for('add_task') }}" method="post">
+  <dl>
+    <dt>Log: <dd><input type="text" size="20" name="log">
+    <dt>Fabric: <dd><input type="text" size="20" name="fabric">
+    <dt>DaysToGo: <dd><input type="text" size="20" name="daystogo">
+    <dt>Units: <dd><input type="text" size="20" name="units">
+    <dt>Length: <dd><input type="text" size="20" name="length">
+    <dd><input type="submit" value="Create">
+  </dl>
+</form>
+<ul class=tasks>
+  <li><h2>{{ tasks | length }}</h2></li>
+  {% for task in tasks %}
+  <li><h2>{{ task.log }}</h2></li>
+  {% endfor %}
+</ul>
+{% endblock %}
+

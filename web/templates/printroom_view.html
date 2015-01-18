@@ -1,0 +1,216 @@
+{% extends "layout.html" %}
+{% block body %}
+<script>
+var selected_printer = "";
+function sendjob(taskid, printer){
+  $.post("{{ url_for('sendjob') }}", 
+    {
+      taskid:taskid,
+      printerid:selected_printer
+      }, function(){
+      window.location.href = "{{ url_for('show_tasks') }}";
+      });
+}
+
+function deletejob(taskid, printer){
+  $.post("{{ url_for('deletejob') }}", 
+    {
+      taskid:taskid,
+      }, function(){
+      window.location.href = "{{ url_for('show_tasks') }}";
+      });
+}
+
+function reprint_sheets(panel_id, printer){
+  var req = {
+    printerid:printer,
+              sheets:""
+  }
+  var sheets = [];
+  var checkboxs = $("#"+panel_id + " .select-sheet");
+  for ( var i=0; i<checkboxs.length; i++){
+    if (checkboxs[i].checked==true)
+      sheets.push(checkboxs[i].id);
+  }
+  req.sheets = sheets.join(",");
+  $.post("{{ url_for('printsheets') }}", req,
+      function(){
+      location.reload();
+      });
+  return 0;
+}
+
+$( document ).ready(function() {
+    $('#tasks .dyt-task-assigned').attr('disabled', 'disabled');
+    $('#tasks .dyt-task-new').attr('disabled', 'disabled');
+    $('#tasks .dyt-sheet-reprint').attr('disabled', 'disabled');
+
+    $('.navbar-nav li').removeClass('active');
+    $('.navbar-nav #nav-printroom').addClass('active');
+    $( '#printers .btn' ).on('click', function(){
+      var btn = $(this);
+      if ( btn.hasClass("btn-success")) {
+        btn.removeClass('btn-success').addClass('btn-default');
+        $('#tasks .dyt-task-new').attr('disabled', 'disabled');
+        $('#tasks .dyt-sheet-reprint').attr('disabled', 'disabled');
+        selected_printer = None;
+      }else {
+        $('#printers .btn-success').removeClass('btn-success').addClass('btn-default');
+        btn.addClass('btn-success');
+        $('#tasks .dyt-task-new').removeAttr('disabled');
+        $('#tasks .dyt-sheet-reprint').removeAttr('disabled');
+        selected_printer = btn.attr('id');//btn.id;
+        var a = selected_printer;
+      }
+    });
+});
+</script>
+<div class="col-sm-9 col-sm-offset-3 col-md-9 col-md-offset-2 main">
+
+  <div id="printers" class="row placeholders">
+    <h4 class="page-header">Printers</h4>
+    <div class="row">
+      <div class="col-md-5">
+        P-ERS
+        <div role="toolbar" class="btn-toolbar">
+          <div class="btn-group">
+            {% for printer in (1,2,3,20,21,22) %}
+            <button class="btn btn-default" id="P-ERS{{ "%02d"|format(printer) }}" type="button">{{ "%02d"|format(printer) }}</button>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      <div class="col-md-2">
+        P-ER
+        <div role="toolbar" class="btn-toolbar">
+          <div class="btn-group">
+            {% for printer in (1,2) %}
+            <button class="btn btn-default" id="P-ER{{ "%02d"|format(printer) }}" type="button">{{ "%02d"|format(printer) }}</button>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        P-Mimaki
+        <div role="toolbar" class="btn-toolbar">
+          <div class="btn-group">
+            {% for printer in (25, 26, 27) %}
+            <button class="btn btn-default" id="P-Mimaki{{ "%02d"|format(printer) }}" type="button">{{ "%02d"|format(printer) }}</button>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      P-E
+      <div role="toolbar" class="btn-toolbar">
+        <div class="btn-group">
+          {% for printer in range(4,19) %}
+          <button class="btn btn-default" id="P-E{{ "%02d"|format(printer) }}" type="button">{{ "%02d"|format(printer) }}</button>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      P-EN
+      <div role="toolbar" class="btn-toolbar">
+        <div class="btn-group">
+          {% for printer in range(4,19) %}
+          <button class="btn btn-default" id="P-EN{{ "%02d"|format(printer) }}" type="button">{{ "%02d"|format(printer) }}</button>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row placeholders">
+    <p class="page-header"></p>
+    <ul class="nav nav-pills" role="tablist">
+      <li role="presentation" {% if view=='' %} class="active" {% endif %}><a href="{{ url_for('show_tasks') }}">Waiting<span class="badge">{{ task_counts[0] }}</span></a></li>
+      {% for d in range(6) %}
+      <li role="presentation" {% if view=='day-%d'%d %} class="active" {% endif %}><a href="{{ url_for('show_tasks') }}?view={{ "day-%d"|format(d) }}">{{ "day-%d"|format(d) }}<span class="badge">{{ task_counts[d+1] }}</span></a></li>
+      {% endfor %}
+    </ul>
+    <ul class="list-group panel-group" id="tasks" >
+      <li class='list-group-item list-group-item-info'>
+      <div class="row show-grid">
+        <span class="col-xs-2">Log</span>
+        <span class="col-xs-2">Fabric</span>
+        <span class="col-xs-2">DaysToGo</span>
+        <span class="col-xs-2">Units</span>
+        <span class="col-xs-2">Length</span>
+        <span class="col-xs-2">Action</span>
+      </div>
+      </li>
+      {% for task in tasks %}
+      <li id="list-task-{{ task.id }}" class='list-group-item panel panel-default'>
+      <div class="row show-grid" {% if view!="" %} data-toggle="collapse" data-parent="#tasks" href="#sheets-panel-{{ task.id }}" {% endif %}>
+        <span class="col-xs-2">{{ task.log }}</span>
+        <span class="col-xs-2">{{ task.fabric }}</span>
+        <span class="col-xs-2">{{ task.daystogo }}</span>
+        <span class="col-xs-2">{{ task.units }}</span>
+        <span class="col-xs-2">{{ task.length }}</span>
+          {% if task.printer %}
+            {% if task.status=="dispatched" %}
+              <span class="col-xs-2">{{ task.printer }}</span>
+            {% else %}
+              <span class="col-xs-2"><button type="button" class="btn btn-sm btn-warning dyt-task-assigned">To:{{ task.printer }}</button></span>
+            {% endif %}
+          {% else %}
+          <span class="col-xs-2">
+            <button type="button" class="btn btn-sm btn-success dyt-task-new" onclick="sendjob({{ task.id }}, selected_printer);">
+              <span class="glyphicon glyphicon-print" aria-hidden="true"></span>
+            </button>
+            <button type="button" class="btn btn-xs btn-danger" onclick="deletejob({{ task.id }});" aria-label="delete">
+              <span class="glyphicon glyphicon-minus" aria-hidden="true"></span>
+            </button>
+          </span>
+          {% endif %}
+      </div>
+      {% if view!='' %}
+      <div id="sheets-panel-{{ task.id }}" class="panel-collapse collapse" >
+        <hr class="divider">
+        <div>
+        <table class="table table-striped" style="height: 0px; margin:5px, 15px, 15px, 25px; border-left: 4px solid #8AC007;">
+          <!--caption>Sheets of this task.</caption-->
+          <thead>
+            <tr>
+              <th>Select</th>
+              <th>Sheet Name</th>
+              <th>Sheet Status</th>
+              <th>Printer</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for sheet in task.sheets %}
+            <tr>
+              <td><input type="checkbox" class="select-sheet" id="{{ sheet.id }}"></td>
+              <td>{{ sheet.src }}</td>
+              <td>{{ sheet.status }}</td>
+              <td>{{ sheet.printer }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+        <div class="row show-grid" style="margin:5px; padding-left: 5px;">
+          <button type="button" class="btn btn-warning" onclick="$('#sheets-panel-{{ task.id }} .select-sheet').prop('checked', true)">Select All</button>
+          <button type="button" class="btn btn-success" onclick="$('#sheets-panel-{{ task.id }} .select-sheet').prop('checked', false)">Clear Selected</button>
+          <button type="button" class="btn btn-primary dyt-sheet-reprint col-md-offset-4" onclick="reprint_sheets('sheets-panel-{{ task.id }}', selected_printer)">Reprint</button>
+        </div>
+        <!--hr class="divider">
+        {% for sheet in task.sheets %}
+        <div>
+        <input type="checkbox" id="{{ sheet.id }}">{{ sheet.src }}
+        <div>
+        {% endfor %}-->
+      </div>
+      {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endblock %}
