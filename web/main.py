@@ -14,6 +14,12 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://%s'%cfg.DBStr
 db = SQLAlchemy(app)
 
+class Orders(db.Model):
+  log = db.Column(db.String(20), nullable=False, primary_key=True)
+  create_at = db.Column(db.Date)
+  daytogo = db.Column(db.Date)
+
+
 class Task(db.Model):
   id = db.Column(db.Integer, primary_key=True)
   log = db.Column(db.String(10), nullable=False)
@@ -71,7 +77,7 @@ def show_tasks():
   view_type = request.args.get("view", "")
   today = date.today()
   waiting = Task.query.order_by(Task.daystogo).filter(Task.status != "dispatched").count()
-  #waiting += Task.query.order_by(Task.daystogo).filter_by(status=None).count()
+  waiting += Task.query.order_by(Task.daystogo).filter_by(status=None).count()
   task_counts = [waiting]
   for i in range(6):
     date_from = date.today()-timedelta(days=i)
@@ -88,6 +94,13 @@ def show_tasks():
     date_from = date.today()-timedelta(days=day_before)
     date_to = date.today()-timedelta(days=day_before-1)
     tasks = Task.query.filter_by(status="dispatched").filter(Task.modify_at.between(date_from, date_to)).all()
+
+  for t in tasks:
+    o = Orders.query.get(t.log)
+    if o:
+      t.create_at = o.create_at
+      t.daystogo = o.daytogo
+
   return render_template('printroom_view.html', view=view_type, tasks=tasks, task_counts=task_counts)
 
 @app.route('/add', methods=['GET'])

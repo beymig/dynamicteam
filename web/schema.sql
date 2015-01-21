@@ -7,3 +7,6 @@ create table tasks (
   units integer not null,
   length integer not null
 );
+
+CREATE TABLE orders(log VARCHAR(20) NOT NULL, create_at DATE, daytogo DATE, PRIMARY KEY(log));
+
