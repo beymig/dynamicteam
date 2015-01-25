@@ -8,6 +8,8 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"io"
 	"io/ioutil"
+	"log"
+	"net/http"
 	"os"
 	"path"
 	"path/filepath"
@@ -22,6 +24,7 @@ type Configuration struct {
 	DoneFolder        string
 	HotFolder         string
 	DBStr             string
+	OriginalPDFFolder string
 }
 
 type RollInfo struct {
@@ -488,22 +491,56 @@ func generateRollReport(rollInfo RollInfo, fpath string, prompt string) (err err
 	return
 }
 
+func getFileListByLog(searchFolders []string, log string) (fileList []string) {
+	fmt.Println("log:", log)
+	fmt.Println("log0-3:", log[:3])
+
+	for _, folder := range searchFolders {
+		files, err := filepath.Glob(filepath.Join(folder, log[0:3], log, log+"_*", "*.pdf"))
+		if err != nil {
+			fmt.Println("search file ", err)
+			continue
+		}
+
+		if len(files) > 0 {
+			for _, f := range files {
+				fileList = append(fileList, f)
+			}
+			break
+		}
+	}
+	return
+}
+
+func fileListService(cfg Configuration) {
+	searchFolders := strings.Split(cfg.OriginalPDFFolder, ",")
+	http.HandleFunc("/filelist", func(w http.ResponseWriter, r *http.Request) {
+		r.ParseForm()
+		log := r.Form.Get("log")
+		pathList := getFileListByLog(searchFolders, log)
+		fileList := []string{}
+		for _, p := range pathList {
+			fileList = append(fileList, filepath.Base(p))
+		}
+		js, _ := json.Marshal(fileList)
+		fmt.Fprintf(w, "%s", js)
+	})
+
+	log.Fatal(http.ListenAndServe(":8080", nil))
+}
+
 func main() {
+	cfg := load_config("cfg.json")
+	go fileListService(cfg)
 	cscan := make(chan error, 20)
 	cdisp := make(chan error, 20)
-	cfg := load_config("cfg.json")
 	go scanForNewTask(cfg, cscan) //
-	//go dispatchPrintJob(cfg, cdisp)
 
-	//*
 	printers := load_printers("printers.json")
 	for printer, _ := range printers {
 		go dispatchPrintJob(printer, cfg, printers, cdisp)
-		//go dispatchSheets(printer, cfg, printers)
-	} //*/
+	}
 
 	<-cscan
 	<-cdisp
-	//generateRollReport(RollInfo{}, "d:\\roll_report.pdf")
-	//fmt.Println("scanForNewTask() returned %v", err)
 }
