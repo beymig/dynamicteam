@@ -3,5 +3,6 @@
   "WaitToPrintFolder":"R:\\WaitForPrint",
   "DoneFolder":"R:\\DoneTasks",
   "HotFolder":"R:\\Hot Folders",
-  "DBStr":"root:dynamicteam@/dynamicteam"
+  "DBStr":"root:dynamicteam@/dynamicteam",
+  "OriginalPDFFolder":"O:\\FINISH ORDERS\\DYNAMIC ORDERS,O:\\FINISH ORDERS\\ERGO"
 }
