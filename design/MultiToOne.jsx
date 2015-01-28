@@ -245,7 +245,7 @@ var Task = function(folder){
       size = attr[0];
       fabric = attr[1]=="FLAT"?attr[2]:attr[1];
       fabric = fabric.replace("FLAT", "");
-      fabric = fabric.trim();
+      fabric = fabric.replace(/^\s+|\s+$/gm,'');
 
       if ( ! (size in size_groups) ){
         size_groups[size] = {};
