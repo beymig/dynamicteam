@@ -81,6 +81,12 @@ def add_task():
   db.session.commit()
   return redirect(url_for('show_tasks'))
 
+@app.route('/redo/report', methods=['POST'])
+def redo_report():
+  log = request.form["log"]
+  files = request.form["files"]
+  return render_template('redo_report.html', log=log, files=files.split(";"))
+
 @app.route('/redo', methods=['GET'])
 def redo_view():
   return render_template('redo.html')

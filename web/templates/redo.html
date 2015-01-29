@@ -31,7 +31,11 @@ function commitRedo(){
     files:selectedFiles.join(';')
   },
   function(data,status){
-    alert("Data: " + data + "\nStatus: " + status);
+    $("#report_log").val(redoLog);
+    $("#report_files").val(data);
+    $("#redo_report_form").submit();
+    //$.get("/redo/report", info, null, "json");
+    //alert("Data: " + data + "\nStatus: " + status);
   });
 }
 
@@ -221,4 +225,8 @@ function submit(){
     </div>
   </div>
 </div>
+<form id="redo_report_form" action="/redo/report" method="post" target="_blank">
+  <input id="report_log" name="log" type="hidden" value="default">
+  <input id="report_files" name="files" type="hidden" value="default">
+</form>
 {% endblock %}
