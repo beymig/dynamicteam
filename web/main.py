@@ -103,6 +103,8 @@ def show_tasks():
   if view_type=="":
     tasks = Task.query.order_by(Task.daystogo).filter(Task.status.in_(("assigned", "dispatching"))).all()
     tasks.extend(Task.query.order_by(Task.daystogo).filter_by(status=None).all())
+  elif view_type[:3]=="log":
+    tasks = Task.query.filter_by(log=view_type[4:]).all()
   else:
     day_before = int(view_type.split('-')[1])
     date_from = date.today()-timedelta(days=day_before)

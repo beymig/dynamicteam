@@ -128,6 +128,7 @@ $( document ).ready(function() {
   <div class="row placeholders">
     <p class="page-header"></p>
     <ul class="nav nav-pills" role="tablist">
+      {% if view[:3]=='log' %}<li role="presentation"  class="active"><a href="{{ url_for('show_tasks') }}">{{ view }}</a></li> {% endif %}
       <li role="presentation" {% if view=='' %} class="active" {% endif %}><a href="{{ url_for('show_tasks') }}">Waiting<span class="badge">{{ task_counts[0] }}</span></a></li>
       {% for d in range(6) %}
       <li role="presentation" {% if view=='day-%d'%d %} class="active" {% endif %}><a href="{{ url_for('show_tasks') }}?view={{ "day-%d"|format(d) }}">{{ "day-%d"|format(d) }}<span class="badge">{{ task_counts[d+1] }}</span></a></li>
