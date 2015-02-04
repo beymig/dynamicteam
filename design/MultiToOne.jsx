@@ -470,7 +470,7 @@ function main(){
   task.export_all();
   CUTCODE_TEXTFRAME.remove();
   if (source instanceof File){
-    source.rename(source.name.replace(".redo", ".done");
+    source.rename(source.name.replace(".redo", ".done"));
   }
 }
 
