@@ -553,7 +553,7 @@ func fileListService(cfg Configuration) {
 		//fmt.Printf("files:%#v", files)
 		logPath := getPathByLog(searchFolders, log)
 		fname := strings.Replace(filepath.Base(logPath), log, log+"redo", 1)
-		redoFile, err := os.OpenFile(filepath.Join(cfg.RedoFolder, fname+".info"), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
+		redoFile, err := os.OpenFile(filepath.Join(cfg.RedoFolder, fname+time.Now().Format("_06Jan02-150405.redo")), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
 		if err != nil {
 			fmt.Println(err)
 		}

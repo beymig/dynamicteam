@@ -278,6 +278,7 @@ var Task = function(folder){
       for ( var i=0; i<info.length; i++)
         files[i] = File(info[i]);
       //files = info.map(function(fname){ return new File(fname);});
+      source.close();
     }
 
     var folder_fields = folderName.split("_");
@@ -427,7 +428,7 @@ function main(){
   var source = Folder.selectDialog('Select the folder with Illustrator files that you want to mere into one', '~');
 
   if(!source)
-    source = File.openDialog('Select the folder with Illustrator files that you want to mere into one', '');
+    source = File.openDialog('Select the folder with Illustrator files that you want to mere into one', '*.redo');
 
   if(!source)
     return;
@@ -468,6 +469,9 @@ function main(){
   var task = new Task(source);
   task.export_all();
   CUTCODE_TEXTFRAME.remove();
+  if (source instanceof File){
+    source.rename(source.name.replace(".redo", ".done");
+  }
 }
 
 main();
