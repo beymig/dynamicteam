@@ -40,7 +40,22 @@ function reprint_sheets(panel_id, printer){
   return 0;
 }
 
+function sum_units_up(){
+  var totalUnits = 0;
+  var tasks=$("div.dyt-task-item");
+  $.each(tasks, function(idx, value){
+      var fields = $(value).children("span");
+      var log = $(fields[0]).text();
+      var units = $(fields[3]).text();
+      if (log.indexOf('redo')==-1 && units && !isNaN(units)){
+        totalUnits += parseInt(units);
+      }
+      });
+  return totalUnits;
+}
+
 $( document ).ready(function() {
+    $('#dyt-total-units').text("Total Units: "+ sum_units_up());
     $('#tasks .dyt-task-assigned').attr('disabled', 'disabled');
     $('#tasks .dyt-task-new').attr('disabled', 'disabled');
     $('#tasks .dyt-sheet-reprint').attr('disabled', 'disabled');
@@ -147,7 +162,7 @@ $( document ).ready(function() {
       </li>
       {% for task in tasks %}
       <li id="list-task-{{ task.id }}" class='list-group-item panel panel-default'>
-      <div class="row show-grid" {% if view!="" %} data-toggle="collapse" data-parent="#tasks" href="#sheets-panel-{{ task.id }}" {% endif %}>
+      <div class="row show-grid dyt-task-item" {% if view!="" %} data-toggle="collapse" data-parent="#tasks" href="#sheets-panel-{{ task.id }}" {% endif %}>
         <span class="col-xs-2">{{ task.log }}</span>
         <span class="col-xs-2">{{ task.fabric }}</span>
         <span class="col-xs-2">{{ task.daystogo }}</span>
@@ -211,6 +226,11 @@ $( document ).ready(function() {
       {% endif %}
       </li>
       {% endfor %}
+      <li class='list-group-item panel panel-default'>
+      <div class="row show-grid">
+        <span id="dyt-total-units" class="col-xs-4 col-xs-offset-8">Total Units: </span>
+      </div>
+      </li>
     </ul>
   </div>
 </div>
