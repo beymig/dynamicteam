@@ -11,7 +11,7 @@ var redoLog = "";
 function importLog(log){
   redoLog = $("#log-number").val()
   $.ajax({
-      url:"http://localhost:8080/filelist",
+      url:dtConfig.redoHost+"/filelist",
       dateType:'json',
       data:{
       log: redoLog
@@ -25,7 +25,7 @@ function commitRedo(){
   var selectedFiles = $.map(elems, function(elem){
       return $(elem).text();
       });
-  $.post("http://localhost:8080/newredo",
+  $.post(dtConfig.redoHost+"/newredo",
   {
     log:redoLog,
     files:selectedFiles.join(';')
@@ -240,7 +240,7 @@ function submit(){
     </div>
   </div>
 </div>
-<form id="redo_report_form" action="/redo/report" method="post" target="_blank">
+<form id="redo_report_form" action="/redo/report" method="post">
   <input id="report_log" name="log" type="hidden" value="default">
   <input id="report_files" name="files" type="hidden" value="default">
 </form>
