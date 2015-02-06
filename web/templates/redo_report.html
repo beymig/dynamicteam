@@ -1,0 +1,39 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="">
+  <meta name="author" content="zhenzhen.jiang@gmail.com">
+  <style>
+  /* Move down content because we have a fixed navbar that is 50px tall */
+  body {
+    padding-top: 50px;
+  }
+
+  div.fileid-list{
+    margin-left: -1px;
+    margin-top: -1px;
+    border:black solid 1px;
+  }
+  </style>
+
+  <title>DynamicTeam - RedoReport-{{ log }}</title>
+  <!-- Bootstrap core CSS -->
+  <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/bootstrap-theme.min.css">
+  <!-- Custom styles for this template -->
+  <link ref=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+  <script src="/static/js/jquery.min.js"></script>
+</head>
+<body>
+  <div class="container theme-showcase" role="main">
+  <a href="/redo">Back</a>
+  <button onclick="window.print();">Print this page</button>
+  <h2>LOG: {{ log }}</h2>
+  {% for f in files %}
+  <div class="fileid-list col-xs-12 col-sm-6 col-md-4 col-lg-3"><p>{{ f }}</p></div>
+  {% endfor %}
+  </div>
+</body>
+</html>

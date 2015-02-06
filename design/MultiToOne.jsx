@@ -230,10 +230,10 @@ function getRidOfCutLine(colorName)
 var Task = function(folder){
   var _this = this;
 
-  var group_files = function(folder){
+  var group_files = function(files){
     //var re = new RegExp(".*\\.(ai|eps|pdf)$", "i");
     //var files = folder.getFiles(function(f){return f.displayName.match(re);});///\.(ai|eps|pdf)$/i);
-    var files = folder.getFiles(/\.(ai|eps|pdf)$/i);
+    //var files = folder.getFiles(/\.(ai|eps|pdf)$/i);
     var size_groups = {};
     for ( var i = 0; i < files.length; i++){
       var attr = files[i].displayName.split("_");
@@ -245,7 +245,7 @@ var Task = function(folder){
       size = attr[0];
       fabric = attr[1]=="FLAT"?attr[2]:attr[1];
       fabric = fabric.replace("FLAT", "");
-      fabric = fabric.replace(/^\s+|\s+$/gm,'');
+      fabric = fabric.replace(/^\s+|\s+$/g, '');
 
       if ( ! (size in size_groups) ){
         size_groups[size] = {};
@@ -261,13 +261,31 @@ var Task = function(folder){
     return size_groups;
   };
 
-  var init = function(folder){
-    _this.folder = folder;
-    var folder_fields = folder.displayName.split("_");
+  var init = function(source){
+    var files;
+    var folderName;
+    if (source instanceof Folder){
+      //_this.folder = source;
+      folderName = source.displayName;
+      files = source.getFiles(/\.(ai|eps|pdf)$/i);
+    }
+    else{
+      source.open('r');
+      var info = source.read();
+      info = info.split(";");
+      folderName = info.shift();
+      files = [];
+      for ( var i=0; i<info.length; i++)
+        files[i] = File(info[i]);
+      //files = info.map(function(fname){ return new File(fname);});
+      source.close();
+    }
+
+    var folder_fields = folderName.split("_");
     _this.log = folder_fields[0];
     _this.unit_count = folder_fields[1];
 
-    _this.size_groups = group_files(folder);
+    _this.size_groups = group_files(files);
   };
 
   this.export_all = function(){
@@ -407,9 +425,12 @@ function resize_artboard(ab, width, height){
 
 function main(){
   // Select the source folder.
-  var sourceFolder = Folder.selectDialog('Select the folder with Illustrator files that you want to mere into one', '~');
+  var source = Folder.selectDialog('Select the folder with Illustrator files that you want to mere into one', '~');
 
-  if(!sourceFolder)
+  if(!source)
+    source = File.openDialog('Select the folder with Illustrator files that you want to mere into one', '*.redo');
+
+  if(!source)
     return;
 
   // Point Text
@@ -445,9 +466,12 @@ function main(){
 
   CUTCODE_TEXTFRAME = pointTextRef;
 
-  var task = new Task(sourceFolder);
+  var task = new Task(source);
   task.export_all();
   CUTCODE_TEXTFRAME.remove();
+  if (source instanceof File){
+    source.rename(source.name.replace(".redo", ".done"));
+  }
 }
 
 main();

@@ -64,12 +64,32 @@ class Sheet(db.Model):
   def __repr__(self):
     return "id:%d|%s|%s|%d"%(self.id, self.src, self.status, self.task_id)
 
+'''def add_cors_headers(r):
+  r.headers['Access-Control-Allow-Origin']="*"
+  if request.method=='OPTIONS':
+    r.headers['Access-Control-Allow-Methods']='DELETE, GET, POST, PUT'
+    headers = request.headers.get('Access-Control-Request-Headers')
+    if headers:
+      r.headers['Access-Control-Allow-Headers']=headers
+  return r'''
+
+
 @app.route('/add', methods=['POST'])
 def add_task():
   t = Task(request.form['log'], request.form['fabric'], datetime.now()+timedelta(days=int(request.form['daystogo'])), int(request.form['units']), int(request.form['length']))
   db.session.add(t)
   db.session.commit()
   return redirect(url_for('show_tasks'))
+
+@app.route('/redo/report', methods=['POST'])
+def redo_report():
+  log = request.form["log"]
+  files = request.form["files"]
+  return render_template('redo_report.html', log=log, files=files.split(";"))
+
+@app.route('/redo', methods=['GET'])
+def redo_view():
+  return render_template('redo.html')
 
 @app.route('/')
 @app.route('/printroom', methods=['GET'])
@@ -89,6 +109,8 @@ def show_tasks():
   if view_type=="":
     tasks = Task.query.order_by(Task.daystogo).filter(Task.status.in_(("assigned", "dispatching"))).all()
     tasks.extend(Task.query.order_by(Task.daystogo).filter_by(status=None).all())
+  elif view_type[:3]=="log":
+    tasks = Task.query.filter_by(log=view_type[4:]).all()
   else:
     day_before = int(view_type.split('-')[1])
     date_from = date.today()-timedelta(days=day_before)
@@ -148,4 +170,5 @@ def printsheets():
 
 if __name__ == '__main__':
   app.debug = True
+  #app.after_request(add_cors_headers)
   app.run(host='0.0.0.0')

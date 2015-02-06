@@ -8,6 +8,8 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"io"
 	"io/ioutil"
+	"log"
+	"net/http"
 	"os"
 	"path"
 	"path/filepath"
@@ -22,6 +24,8 @@ type Configuration struct {
 	DoneFolder        string
 	HotFolder         string
 	DBStr             string
+	OriginalPDFFolder string
+	RedoFolder        string
 }
 
 type RollInfo struct {
@@ -488,22 +492,100 @@ func generateRollReport(rollInfo RollInfo, fpath string, prompt string) (err err
 	return
 }
 
+func getPathByLog(searchFolders []string, log string) string {
+	for _, folder := range searchFolders {
+		fpath, err := filepath.Glob(filepath.Join(folder, log[0:3], log, log+"_*"))
+		if err != nil {
+			fmt.Println("search file ", err)
+			continue
+		}
+		if len(fpath) > 0 {
+			return fpath[0]
+		}
+	}
+	return ""
+}
+
+func getFileListByLog(searchFolders []string, log string) (fileList []string) {
+	fmt.Println("log:", log)
+	fmt.Println("log0-3:", log[:3])
+
+	for _, folder := range searchFolders {
+		files, err := filepath.Glob(filepath.Join(folder, log[0:3], log, log+"_*", "*.pdf"))
+		if err != nil {
+			fmt.Println("search file ", err)
+			continue
+		}
+
+		if len(files) > 0 {
+			for _, f := range files {
+				fileList = append(fileList, f)
+			}
+			break
+		}
+	}
+	return
+}
+
+func fileListService(cfg Configuration) {
+	searchFolders := strings.Split(cfg.OriginalPDFFolder, ",")
+	http.HandleFunc("/filelist", func(w http.ResponseWriter, r *http.Request) {
+		r.ParseForm()
+		log := r.Form.Get("log")
+		pathList := getFileListByLog(searchFolders, log)
+		fileList := []string{}
+		for _, p := range pathList {
+			fileList = append(fileList, filepath.Base(p))
+		}
+
+		js, _ := json.Marshal(fileList)
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(js)
+		//fmt.Fprintf(w, "%s", js)
+	})
+
+	http.HandleFunc("/newredo", func(w http.ResponseWriter, r *http.Request) {
+		r.ParseForm()
+		log := r.PostForm.Get("log")
+		files := r.PostForm.Get("files")
+		fmt.Println("log:", log)
+		//fmt.Printf("files:%#v", files)
+		logPath := getPathByLog(searchFolders, log)
+		fname := strings.Replace(filepath.Base(logPath), log, log+"redo", 1)
+		redoFile, err := os.OpenFile(filepath.Join(cfg.RedoFolder, fname+time.Now().Format("_06Jan02-150405.redo")), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
+		if err != nil {
+			fmt.Println(err)
+		}
+		redoInfo := fname
+		for _, fid := range strings.Split(files, ";") {
+			redoInfo += ";" + filepath.Join(logPath, fid+".pdf")
+		}
+		//redoInfo = strings.Replace(redoInfo, ";", ";"+logPath, -1)
+		//fmt.Fprint(redoFile)
+		fmt.Fprint(redoFile, redoInfo)
+
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Content-Type", "application/json")
+		js, _ := json.Marshal(files)
+		w.Write(js)
+	})
+
+	log.Fatal(http.ListenAndServe(":8080", nil))
+}
+
 func main() {
+	cfg := load_config("cfg.json")
+	go fileListService(cfg)
 	cscan := make(chan error, 20)
 	cdisp := make(chan error, 20)
-	cfg := load_config("cfg.json")
 	go scanForNewTask(cfg, cscan) //
-	//go dispatchPrintJob(cfg, cdisp)
 
-	//*
 	printers := load_printers("printers.json")
 	for printer, _ := range printers {
 		go dispatchPrintJob(printer, cfg, printers, cdisp)
-		//go dispatchSheets(printer, cfg, printers)
-	} //*/
+	}
 
 	<-cscan
 	<-cdisp
-	//generateRollReport(RollInfo{}, "d:\\roll_report.pdf")
-	//fmt.Println("scanForNewTask() returned %v", err)
 }

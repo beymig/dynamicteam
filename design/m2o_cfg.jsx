@@ -24,6 +24,7 @@ var FABRIC_LIST = {
   "20316":["VOLLYBALL", 58, 60],
   "20439":["VOLLYBALL", 58, 60],
   "29121":["SOCCER", 62, 80],
+  "MESH29121":["SOCCER", 62, 80],
   "28878":["SOCCER TRIM", 62, 70],
   "29209":["TRIM", 58, 50],
   "29127":["LACROSSE", 60, 90],

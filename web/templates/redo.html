@@ -1,0 +1,247 @@
+{% extends "layout.html" %}
+{% block body %}
+<script>
+$( document ).ready(function() {
+    $('.navbar-nav li').removeClass('active');
+    $('.navbar-nav #nav-redo').addClass('active');
+
+});
+
+var redoLog = "";
+function importLog(log){
+  redoLog = $("#log-number").val()
+  $.ajax({
+      url:dtConfig.redoHost+"/filelist",
+      dateType:'json',
+      data:{
+      log: redoLog
+      },
+      success: updateSelectPanel
+    });
+}
+
+function commitRedo(){
+  var elems = $("#selected-list li");
+  var selectedFiles = $.map(elems, function(elem){
+      return $(elem).text();
+      });
+  $.post(dtConfig.redoHost+"/newredo",
+  {
+    log:redoLog,
+    files:selectedFiles.join(';')
+  },
+  function(data,status){
+    $("#report_log").val(redoLog);
+    $("#report_files").val(data);
+    $("#redo_report_form").submit();
+    //$.get("/redo/report", info, null, "json");
+    //alert("Data: " + data + "\nStatus: " + status);
+  });
+}
+
+function addAllCandidates(){
+  var items = $("li.dyt-piece-cand:visible");
+  $.each(items, function(idx, value){
+      selectPiece($(value).attr('id').replace("cand-", ""));
+      });
+}
+
+function removeAllSelected(){
+  var items = $("li.dyt-piece-selected");
+  $.each(items, function(idx, value){
+      unselectPiece($(value).attr('id').replace("selected-", ""));
+      });
+}
+
+/* get size|fabric|part|number*/
+function getSFPN(pieceID){
+  pieceID = pieceID.replace(/^_/,'');
+  //pieceID = pieceID.replace('+','');
+  var fields = pieceID.split('_');
+  if (fields[1]=='FLAT'){
+    fields.splice(1, 1);
+  }
+
+  return [fields[0], fields[1], fields.slice(2, fields.length-1).join('_').replace(/\d/g, ''), fields[fields.length-1]];
+
+}
+
+function updateSelectPanel(fileList){
+  // delete all items in pool
+  var innerHTML = "";
+  var pieceID = "";
+  var fabric = [];
+  var size = [];
+  var part = [];
+  var num = [];
+  for ( var i=0; i<fileList.length; ++i){
+    pieceID = fileList[i].substr(0, fileList[i].length-4);
+    innerHTML+='<li class="list-group-item dyt-piece-cand" id="cand-'+pieceID+'">'+pieceID+'<button class="btn btn-xs btn-success pull-right" onclick="selectPiece(\''+pieceID+'\')"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button></li></li>';
+
+    var sfpn = getSFPN(pieceID);
+
+    if (size.indexOf(sfpn[0]) == -1){
+      size[size.length]=sfpn[0];
+    }
+    if (fabric.indexOf(sfpn[1]) == -1){
+      fabric[fabric.length]=sfpn[1];
+    }
+    if (sfpn[2] && part.indexOf(sfpn[2]) == -1){
+      part[part.length]=sfpn[2];
+    }
+    if (num.indexOf(sfpn[3]) == -1){
+      num[num.length] = sfpn[3];
+    }
+    /*for (var j=2; j<fields.length-1; j++){
+      var pname = fields[j].replace(/\d/g,'');
+      if (part.indexOf(pname) == -1){
+        part[part.length]=pname;
+      }
+    }*/
+  }
+  // insert items into pool
+  $("#candidate-list").html(innerHTML);
+
+  // refresh filter
+  updateFilter("#filter-fabric", fabric);
+  updateFilter("#filter-size", size);
+  updateFilter("#filter-part", part);
+  updateFilter("#filter-number", num);
+
+}
+
+function updateFilter(ctrl, filters){
+  var innerHTML = "";
+  for (var i=0; i<filters.length; i++){
+    innerHTML += '<button class="btn btn-success" type="button">'+filters[i]+'</button>';
+  }
+  $(ctrl).html(innerHTML);
+
+  $(ctrl + ' button' ).on('click', function(){
+    var btn = $(this);
+    if ( btn.hasClass("btn-success")) {
+      btn.removeClass('btn-success').addClass('btn-default');
+    }else {
+      btn.removeClass('btn-default').addClass('btn-success');
+    }
+    filtePieces();
+  });
+}
+
+function selectPiece(pieceID){
+  var li = $("li#cand-"+pieceID);
+  li.addClass("cand-selected");
+  li.fadeOut();
+
+  li = $('<li class="list-group-item dyt-piece-selected" id="selected-'+pieceID+'">'+pieceID+'<button class="btn btn-xs btn-danger pull-left" onclick="unselectPiece(\''+pieceID+'\')"><span class="glyphicon glyphicon-minus" aria-hidden="true"></span></button><input class="pull-right" size="2" type="text" value="1" disabled></li>').appendTo("#selected-list").fadeIn();
+}
+
+function unselectPiece(pieceID){
+  // remove from selected list
+  var li = $("li#selected-"+pieceID);
+  li.remove();
+  // show in candidate list
+  $("li#cand-"+pieceID).removeClass("cand-selected").fadeIn();
+}
+
+function groupSelect(groupID, select){
+  var elems;
+  if (select){
+    elems = $("#"+groupID+" button.btn-default");
+    elems.removeClass("btn-default").addClass("btn-success");
+  }
+  else {
+    elems = $("#"+groupID+" button.btn-success");
+    elems.removeClass("btn-success").addClass("btn-default");
+  }
+  filtePieces();
+}
+
+function filtePieces(){
+  var filterIDs = ["#filter-size", "#filter-fabric", "#filter-part", "#filter-number"];
+  var filters = [];
+  for ( var i=0; i<filterIDs.length; i++){
+    var elms = $(filterIDs[i]+" button.btn-success");
+    filters[i]= $.map(elms, function(elm){ return $(elm).text();});
+    /*for ( var ei = 0; ei<elms.length; ++ei){
+      filters[i][ei]=$(elms[ei]).text();
+    }*/
+  }
+  var pieceElms = $("#candidate-list li");
+  for (var i=0; i<pieceElms.length; i++){
+    var sfpn = getSFPN($(pieceElms[i]).text());
+    var match = true;
+    for(var j=0; j<filters.length; j++){
+      if (sfpn[j] && filters[j].indexOf(sfpn[j])==-1){
+        $(pieceElms[i]).fadeOut();
+        match = false;
+        break;
+      }
+    }
+    if (match && !$(pieceElms[i]).hasClass("cand-selected"))
+      $(pieceElms[i]).fadeIn();
+  }
+}
+
+function submit(){
+}
+</script>
+<div class="col-sm-12 col-sm-offset-1 col-md-11 col-md-offset-1 main">
+<h2>Create Redo Task</h2>
+<p>Import pieces by log number to start redo. <br>Select/Unselect fabric size and part to filter redo content.</p>
+  <div class="col-xs-6">
+    <div class="input-group">
+      <input type="text" id="log-number" class="form-control" placeholder="Input Log Number...">
+      <span class="input-group-btn">
+        <button class="btn btn-default" type="button" onclick="importLog()">Import</button>
+      </span>
+    </div><!-- /input-group -->
+  </div><!-- /.col-lg-6 -->
+  <div id="filter" class="row placeholders">
+    <h4 class="page-header">Filter</h4>
+    <div class="row">
+      {% for flt in (("fabric", 4), ("size", 6), ("part", 12), ("number", 12)) %}
+      <div class="col-md-{{ flt[1] }}">
+        <h4>{{ flt[0] }}
+          <button class="btn btn-xs btn-success" type="button" onclick="groupSelect('filter-{{ flt[0] }}', true)"><span class="glyphicon glyphicon-log-in" aria-hidden="true"></span></button>
+          <span>  </span>
+          <button class="btn btn-xs btn-default" type="button" onclick="groupSelect('filter-{{ flt[0] }}', false)"><span class="glyphicon glyphicon-log-out" aria-hidden="true"></span></button>
+        </h4>
+        <div role="toolbar" class="btn-toolbar">
+          <div id="filter-{{ flt[0] }}" class="btn-group">
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <h4 class="page-header">Patten Files</h4>
+    <div class="row">
+      <div class="col-xs-1 col-xs-offset-5">
+        <button class="btn btn-xs btn-success pull-right" type="button" onclick="addAllCandidates()"><span class="glyphicon glyphicon-plus" aria-hidden="true">AddAll</span></button>
+      </div>
+      <div class="col-xs-1">
+        <button class="btn btn-xs btn-danger" type="button" onclick="removeAllSelected()"><span class="glyphicon glyphicon-minus" aria-hidden="true">RemoveAll</span></button>
+      </div>
+      <div class="col-xs-1 col-xs-offset-2">
+        <button class="btn btn-xs btn-info" type="button" onclick="commitRedo()"><span class="glyphicon glyphicon-arrow-up" aria-hidden="true">Commit</span></button>
+      </div>
+      <div class="col-xs-12">
+      </div>
+      <div class="col-xs-6">
+        <ul id="candidate-list" class="list-group" >
+        </ul>
+      </div>
+      <div class="col-xs-1">
+      </div>
+      <div class="col-xs-6">
+        <ul id="selected-list" class="list-group">
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+<form id="redo_report_form" action="/redo/report" method="post">
+  <input id="report_log" name="log" type="hidden" value="default">
+  <input id="report_files" name="files" type="hidden" value="default">
+</form>
+{% endblock %}

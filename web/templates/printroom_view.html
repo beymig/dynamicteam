@@ -40,7 +40,22 @@ function reprint_sheets(panel_id, printer){
   return 0;
 }
 
+function sum_units_up(){
+  var totalUnits = 0;
+  var tasks=$("div.dyt-task-item");
+  $.each(tasks, function(idx, value){
+      var fields = $(value).children("span");
+      var log = $(fields[0]).text();
+      var units = $(fields[3]).text();
+      if (log.indexOf('redo')==-1 && units && !isNaN(units)){
+        totalUnits += parseInt(units);
+      }
+      });
+  return totalUnits;
+}
+
 $( document ).ready(function() {
+    $('#dyt-total-units').text("Total Units: "+ sum_units_up());
     $('#tasks .dyt-task-assigned').attr('disabled', 'disabled');
     $('#tasks .dyt-task-new').attr('disabled', 'disabled');
     $('#tasks .dyt-sheet-reprint').attr('disabled', 'disabled');
@@ -128,6 +143,7 @@ $( document ).ready(function() {
   <div class="row placeholders">
     <p class="page-header"></p>
     <ul class="nav nav-pills" role="tablist">
+      {% if view[:3]=='log' %}<li role="presentation"  class="active"><a href="{{ url_for('show_tasks') }}">{{ view }}</a></li> {% endif %}
       <li role="presentation" {% if view=='' %} class="active" {% endif %}><a href="{{ url_for('show_tasks') }}">Waiting<span class="badge">{{ task_counts[0] }}</span></a></li>
       {% for d in range(6) %}
       <li role="presentation" {% if view=='day-%d'%d %} class="active" {% endif %}><a href="{{ url_for('show_tasks') }}?view={{ "day-%d"|format(d) }}">{{ "day-%d"|format(d) }}<span class="badge">{{ task_counts[d+1] }}</span></a></li>
@@ -146,7 +162,7 @@ $( document ).ready(function() {
       </li>
       {% for task in tasks %}
       <li id="list-task-{{ task.id }}" class='list-group-item panel panel-default'>
-      <div class="row show-grid" {% if view!="" %} data-toggle="collapse" data-parent="#tasks" href="#sheets-panel-{{ task.id }}" {% endif %}>
+      <div class="row show-grid dyt-task-item" {% if view!="" %} data-toggle="collapse" data-parent="#tasks" href="#sheets-panel-{{ task.id }}" {% endif %}>
         <span class="col-xs-2">{{ task.log }}</span>
         <span class="col-xs-2">{{ task.fabric }}</span>
         <span class="col-xs-2">{{ task.daystogo }}</span>
@@ -210,6 +226,11 @@ $( document ).ready(function() {
       {% endif %}
       </li>
       {% endfor %}
+      <li class='list-group-item panel panel-default'>
+      <div class="row show-grid">
+        <span id="dyt-total-units" class="col-xs-4 col-xs-offset-8">Total Units: </span>
+      </div>
+      </li>
     </ul>
   </div>
 </div>
