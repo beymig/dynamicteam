@@ -288,27 +288,107 @@ var Task = function(folder){
     _this.size_groups = group_files(files);
   };
 
+  this.combinePieces = function(ab, folder, filebase, pieces){
+    // export
+    var size_seq = 0;
+    var total_len = 0;
+    while(pieces.length > 0){
+      var filename = [filebase, size_seq++].join('_') +".pdf";
+
+      resize_artboard(ab, 0, 120);
+      var pb = new PrintBoard(ab);
+      //var timestamp = (new Date()).getTime();
+      CUTCODE_TEXTFRAME.contents = filename;
+      redraw();
+      pb.import_pieces(pieces);
+      var height = (new UnitValue(-pb.lowest, "px")).as ('in');
+      resize_artboard(ab, 0, height);
+      total_len += Math.ceil(height);
+
+
+      var cut_file = CUT_OUTPUT_FOLDER+"\\" + filename;
+      var cut_file_mid = CUT_OUTPUT_FOLDER_MID+"\\" + filename;
+      var print_file = folder + "\\" + filename;
+
+      pb.export_pdf(cut_file_mid);
+      var pf = File(cut_file_mid);
+      pf.copy(cut_file);
+
+      pb.remove_all();
+      CUTCODE_TEXTFRAME.contents = "";
+      
+      //
+      var cutpiece = import_piece(app.activeDocument, cut_file_mid);
+      cutpiece.move_to([0,0]);
+      cutpiece.flip();
+      cutpiece.pageitem().embed();
+      
+      getRidOfCutLine("Thru-Cut");
+      pb.export_pdf(print_file);
+
+      //app.activeDocument.pageItems.removeAll();
+      items = app.activeDocument.pageItems;
+      for ( i = 0; i < items.length ; i++ )
+      {
+        if (items[i] != CUTCODE_TEXTFRAME){
+          if (!items[i].hidden)
+            items[i].remove();
+        }
+      }
+    }
+    return total_len;
+  };
+
+  this.importByFabric = function(fabric){
+    var fabric_pieces = [];
+    for (var idx=0; idx<size_order.length; idx++){
+      var size = size_order[idx];
+      if (size in this.size_groups){
+        if (fabric in this.size_groups[size]){
+          var files  = this.size_groups[size][fabric];
+          fabric_pieces = fabric_pieces.concat(this.importAndOrderBySize(files));
+        }
+      }
+    }
+    return fabric_pieces;
+  };
+
+  this.importAndOrderBySize = function(files){
+    var pieces = import_all(files);
+    pieces.sort(function(a, b)
+        {
+          var ar = a.get_rect();
+          var br = b.get_rect();
+          return -(((ar.w*ar.h)-(br.w*br.h))||(ar.h-br.h));
+        });
+    return pieces;
+  };
+
   this.export_all = function(){
     var global_seq = 0;
     var sub_folders = {};
+    var done_fabric = {};
+    var redoTask = this.log.indexOf("redo") != -1;
     for ( var size in this.size_groups){
       var size_group = this.size_groups[size];
       for ( var fabric in size_group ){
         var fabric_width = FABRIC_LIST[fabric][1];
         var ab = app.activeDocument.artboards[0];
         $.writeln("fabric: "+fabric + "--> " + fabric_width);
-        //resize_artboard(ab, fabric_width-2, 120);
+        resize_artboard(ab, fabric_width-2, 0);
 
         // Get all files matching the pattern
-        var files = size_group[fabric];
-
-        var pieces = import_all(files);
-        pieces.sort(function(a, b)
-            {
-              var ar = a.get_rect();
-              var br = b.get_rect();
-              return -(((ar.w*ar.h)-(br.w*br.h))||(ar.h-br.h));
-            });
+        var pieces;
+        if (!redoTask){
+          var files = size_group[fabric];
+          pieces = this.importAndOrderBySize(files);
+        } else{
+          if (fabric in done_fabric){
+            continue;
+          }
+          pieces = this.importByFabric(fabric);
+          done_fabric[fabric] = 1;
+        }
 
         // prepare folder
         var folder_id = [this.log, fabric, this.unit_count].join('_');
@@ -321,54 +401,8 @@ var Task = function(folder){
         
         if(!(folder_id in sub_folders))
           sub_folders[folder_id]=0;
-        //
-        // export
-        var size_seq = 0;
-        while(pieces.length > 0){
-          var filename = [this.log, fabric, size, size_seq++].join('_') +".pdf";
 
-          resize_artboard(ab, fabric_width-2, 120);
-          var pb = new PrintBoard(ab);
-          //var timestamp = (new Date()).getTime();
-          CUTCODE_TEXTFRAME.contents = filename;//[this.log, fabric, size, "cut", global_seq++].join("_");
-          redraw();
-          pb.import_pieces(pieces);
-          ab.artboardRect = [0, 0, (new UnitValue(fabric_width-2, "in")).as ('px'), pb.lowest];
-          sub_folders[folder_id] += Math.ceil((new UnitValue(-pb.lowest, "px")).as ('in'));
-
-
-          var cut_file = CUT_OUTPUT_FOLDER+"\\" + filename;//[this.log, "cut", global_seq, timestamp].join("_")+".pdf";
-          var cut_file_mid = CUT_OUTPUT_FOLDER_MID+"\\" + filename;
-          var print_file = output_folder + "\\" + filename;//[this.log, fabric, size, size_seq++, "cut", global_seq++].join('_') +".pdf";
-
-          pb.export_pdf(cut_file_mid);
-          var pf = File(cut_file_mid);
-          pf.copy(cut_file);
-
-          pb.remove_all();
-          CUTCODE_TEXTFRAME.contents = "";
-          
-          //
-          var cutpiece = import_piece(app.activeDocument, cut_file_mid);
-          cutpiece.move_to([0,0]);
-          cutpiece.flip();
-          cutpiece.pageitem().embed();
-          
-          getRidOfCutLine("Thru-Cut");
-          pb.export_pdf(print_file);
-
-          //app.activeDocument.pageItems.removeAll();
-          items = app.activeDocument.pageItems;
-          for ( i = 0; i < items.length ; i++ )
-          {
-            if (items[i] != CUTCODE_TEXTFRAME){
-              if (!items[i].hidden)
-                items[i].remove();
-            }
-          }
-
-          //resize_artboard(ab, fabric_width-2, 120);
-        }
+        sub_folders[folder_id]+=this.combinePieces(ab, output_folder, [this.log, fabric, size].join('_'), pieces);
       }
     }
     var i = 0;
@@ -376,11 +410,12 @@ var Task = function(folder){
     for( id in sub_folders)
       folder_count++;
 
+    var timeStamp = (new Date()).valueOf().toString().substr(5, 5);
     for (var folder_id in sub_folders) {
       i++;
       //var total_length = (new UnitValue(sub_folders[folder_id], "px")).as ('in');
       var sub_folder = new Folder(OUTPUT_FOLDER + "\\" + [COMBINING_PREFIX, folder_id].join('_'));
-      var ok = sub_folder.rename(OUTPUT_FOLDER + "\\" + [COMBINED_PREFIX, folder_id, sub_folders[folder_id].toString()+"in", i.toString()+"-"+folder_count.toString()].join('_'));
+      var ok = sub_folder.rename(OUTPUT_FOLDER + "\\" + [COMBINED_PREFIX, folder_id, sub_folders[folder_id].toString()+"in", i.toString()+"-"+folder_count.toString(), timeStamp].join('_'));
       if(!ok)
         $.writeln("Rename failed: "+sub_folder);
       else
@@ -420,7 +455,9 @@ function import_all(files){
 }
 
 function resize_artboard(ab, width, height){
-  ab.artboardRect = [0, 0, (new UnitValue(width, "in")).as ('px'), (new UnitValue(-height, "in")).as('px')];
+  width = (width && (new UnitValue(width, "in")).as ('px'))||ab.artboardRect[2];
+  height = (height && (new UnitValue(-height, "in")).as ('px'))||ab.artboardRect[3];
+  ab.artboardRect = [0, 0, width, height];
 };
 
 function main(){
