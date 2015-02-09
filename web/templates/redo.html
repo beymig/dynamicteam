@@ -23,7 +23,13 @@ function importLog(log){
 function commitRedo(){
   var elems = $("#selected-list li");
   var selectedFiles = $.map(elems, function(elem){
-      return $(elem).text();
+      var str = $(elem).text();
+      var result = str;
+      var count = parseInt($(elem).children('input').val());
+      for(var i = 1; i<count; i++){
+        result+=";"+str;
+      }
+      return result;
       });
   $.post(dtConfig.redoHost+"/newredo",
   {
@@ -133,7 +139,7 @@ function selectPiece(pieceID){
   li.addClass("cand-selected");
   li.fadeOut();
 
-  li = $('<li class="list-group-item dyt-piece-selected" id="selected-'+pieceID+'">'+pieceID+'<button class="btn btn-xs btn-danger pull-left" onclick="unselectPiece(\''+pieceID+'\')"><span class="glyphicon glyphicon-minus" aria-hidden="true"></span></button><input class="pull-right" size="2" type="text" value="1" disabled></li>').appendTo("#selected-list").fadeIn();
+  li = $('<li class="list-group-item dyt-piece-selected" id="selected-'+pieceID+'">'+pieceID+'<button class="btn btn-xs btn-danger pull-left" onclick="unselectPiece(\''+pieceID+'\')"><span class="glyphicon glyphicon-minus" aria-hidden="true"></span></button><input class="pull-right" size="2" type="text" value="1"></li>').appendTo("#selected-list").fadeIn();
 }
 
 function unselectPiece(pieceID){
