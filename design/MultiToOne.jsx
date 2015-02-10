@@ -196,36 +196,17 @@ function import_piece(doc, filename){
   return new RectPiece(pi);
 };
 
-function getRidOfCutLine(colorName)
-{
-  var doc, items, i = 0, n = 0, item, swcolor, selectionArray = [];
-  doc = app.activeDocument;
-  try
-  {
-      swcolor = doc.swatches.getByName ( colorName );
-  }
-  catch(e)
-  {
-      return;
+function deleteThruCut(){
+  var items = app.activeDocument.selection;
+  for(var i = 0;i < items.length;i++){
+    items[i].selected = false;
   }
 
-  var color = swcolor.color.spot.color ;
-
-  items = doc.pageItems;
-  for ( i = 0; i < items.length ; i++ )
-  {
-    item = items[i];
-    if ( item.strokeColor && item.strokeColor.typename == swcolor.color.typename){
-      if(item.strokeColor.spot.color.cyan == color.cyan
-          && item.strokeColor.spot.color.magenta == color.magenta
-          && item.strokeColor.spot.color.yellow == color.yellow
-          && item.strokeColor.spot.color.black == color.black ){
-            item.remove();
-            $.writeln("remove cutline: ",i);
-          }
-    }
-  }
+  //selectFirstByColor("Thru-Cut");
+  //app.doScript ("delete thru cut", "Default Actions");
+  app.doScript ("rm thru cut", "Default Actions");
 }
+
 
 var Task = function(folder){
   var _this = this;
@@ -315,7 +296,7 @@ var Task = function(folder){
       pf.copy(cut_file);
 
       pb.remove_all();
-      CUTCODE_TEXTFRAME.contents = "";
+      CUTCODE_TEXTFRAME.contents = "  ";
       
       //
       var cutpiece = import_piece(app.activeDocument, cut_file_mid);
@@ -323,7 +304,8 @@ var Task = function(folder){
       cutpiece.flip();
       cutpiece.pageitem().embed();
       
-      getRidOfCutLine("Thru-Cut");
+      //getRidOfCutLine("Thru-Cut");
+      deleteThruCut();
       pb.export_pdf(print_file);
 
       //app.activeDocument.pageItems.removeAll();
