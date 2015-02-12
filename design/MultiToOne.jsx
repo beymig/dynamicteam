@@ -73,7 +73,7 @@ var PrintBoard = function(artboard){
   this.lowest = 0;
   this.insert_points = [];
   
-  this.insert_points.push([DOT_SIZE, -DOT_SIZE-20]);
+  this.insert_points.push([DOT_SIZE, -DOT_SIZE-TITLE_SIZE]);
   this.pieces = [];
   this.dots = [];
 
@@ -455,7 +455,7 @@ function main(){
   // Point Text
   var pointTextRef = app.activeDocument.textFrames.add();
   pointTextRef.contents = "";
-  pointTextRef.top = -20;
+  pointTextRef.top = -TITLE_SIZE;
   pointTextRef.left = 10;
 
   // resize text
@@ -470,8 +470,8 @@ function main(){
     charStyle = docRef.characterStyles.add("BigRed");
     // set character attributes
     var charAttr = charStyle.characterAttributes;
-    charAttr.size = 20;
-    charAttr.tracking = -30;
+    charAttr.size = TITLE_SIZE;
+    charAttr.tracking = -TITLE_SIZE;
     charAttr.capitalization = FontCapsOption.ALLCAPS;
     var redColor = new RGBColor();
     redColor.red = 255;

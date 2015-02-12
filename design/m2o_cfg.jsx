@@ -6,6 +6,7 @@ var COMBINING_PREFIX = "combining"
 var COMBINED_PREFIX = "combined"
 var DOT_FILE = "R:\\daniel_test\\dot.pdf";
 var DOT_SIZE = 30;
+var TITLE_SIZE = 50;
 var CUTCODE_TEXTFRAME;
 var FABRIC_LIST = {
   "29089":["BASKETBALL", 60, 80],
