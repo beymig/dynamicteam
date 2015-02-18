@@ -6,10 +6,12 @@ var COMBINING_PREFIX = "combining"
 var COMBINED_PREFIX = "combined"
 var DOT_FILE = "R:\\daniel_test\\dot.pdf";
 var DOT_SIZE = 30;
+var TITLE_SIZE = 50;
 var CUTCODE_TEXTFRAME;
 var FABRIC_LIST = {
   "29089":["BASKETBALL", 60, 80],
   "28979":["BASKETBALL", 60, 80],
+  "MESH28979":["BASKETBALL", 60, 80],
   "20365":["BASKETBALL", 60, 90],
   "29192":["BASKETBALL", 58, 90],
   "MESH29192":["BASKETBALL", 58, 90],
@@ -39,14 +41,17 @@ var FABRIC_LIST = {
   "5235":["FLEX-DRY", 60, 90],
   "3650":["FLEX-DRY", 60, 90],
   "JL2013":["DYNAMIC", 58, 90],
+  "9737-001":["DYNAMIC", 60, 90],
   "9679-005":["DYNAMIC", 54, 90],
   "RICE-MESH":["DYNAMIC", 61, 90],
-  "STRECH-TEC":["DYNAMIC", 64, 90],
-  "791-PANTS":["HEAVY POLYESTER", 64, 90],
+  "STRETCH TEC":["DYNAMIC", 64, 90],
+  "791-PANTS":["HEAVY POLYESTER", 62, 90],
+  "F791":["HEAVY POLYESTER", 62, 90],
   "298-JERSEY":["HEAVY POLYESTER", 60, 90],
   "5377 9.5 oz":["HEAVY WEIGHT", 63, 90],
   "AIR-MESH":["DYNAMIC", 60, 80],
-  "PORTHOLE MESH":["DYNAMIC", 54, 80],
+  "DRY TEC":["DYNAMIC", 60, 80],
+  "PORTHOLE MESH":["DYNAMIC", 56, 80],
   "HEAVY DAZZLE":["DYNAMIC", 60, 80],
   "POLY-FLEX":["DYNAMIC", 64, 90],
   "20365":["DYNAMIC", 61, 90],
@@ -56,6 +61,6 @@ var FABRIC_LIST = {
   "5106":["NIKE", 62, 80],
 };
 
-//var size_order = ["AXXXXLT", "AXXXLT","AXXLT", "AXLT", "ALT", "AMT", "AST", "AXXXXL", "AXXXL", "AXXL", "AXL", "AL", "AM", "AS", "AXS", "AXXS", "YXXL", "YXL", "YL", "YM", "YS"];
+var size_order = ["AXXXXLT", "AXXXLT","AXXLT", "AXLT", "ALT", "AMT", "AST", "AXXXXL", "AXXXL", "AXXL", "AXL", "AL", "AM", "AS", "AXS", "AXXS", "YXXL", "YXL", "YL", "YM", "YS"];
 
 
