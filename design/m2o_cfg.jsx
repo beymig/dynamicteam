@@ -58,8 +58,8 @@ var FABRIC_LIST = {
   "1997-18":["NIKE", 54, 80],
   "1887":["NIKE", 55, 80],
   "5106":["NIKE", 62, 80],
-  "SheetS":["SHEET", 53, 53],
-  "SheetL":["SHEET", 64, 64],
+  "SHEETS":["SHEET", 53, 53],
+  "SHEETL":["SHEET", 64, 64],
 };
 
 var size_order = ["AXXXXLT", "AXXXLT","AXXLT", "AXLT", "ALT", "AMT", "AST", "AXXXXL", "AXXXL", "AXXL", "AXL", "AL", "AM", "AS", "AXS", "AXXS", "YXXL", "YXL", "YL", "YM", "YS"];
