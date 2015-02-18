@@ -329,6 +329,7 @@ func dispatchPrintJob(printer string, cfg Configuration, printers map[string]str
 	hotfolder := cfg.HotFolder
 	//printers := load_printers("printers.json")
 	printerFolder := path.Join(hotfolder, printers[printer])
+	sheetJob := strings.HasPrefix(printer, "NZ")
 
 	con, err := sql.Open("mysql", cfg.DBStr+"?parseTime=true")
 	if err != nil {
@@ -372,40 +373,42 @@ func dispatchPrintJob(printer string, cfg Configuration, printers map[string]str
 			doneFolder := path.Join(doneRoot, folderid)
 			pdfFiles, err := ioutil.ReadDir(taskFolder)
 
-			// insert cut-sheet
-			cutSheet := path.Join(taskFolder, fmt.Sprintf("CUT PAPER HERE_%s_%s_task%d_report.pdf", log, fabric, id))
-			firstSheet := path.Join(taskFolder, fmt.Sprintf("NEW ROLL START HERE_%s_%s_task%d_report.pdf", log, fabric, id))
-			rollInfo := RollInfo{
-				Log:      log,
-				Fabric:   fmt.Sprintf("%s(%s)", fabric, strings.Split(folderid, "_")[4]),
-				Printer:  printer,
-				Height:   length,
-				DaysToGo: daystogo,
-				Units:    units,
-			}
-			if err = generateRollReport(rollInfo, cutSheet, "CUT PAPER HERE!"); err != nil {
-				fmt.Println(err)
-				continue NextRow
-			}
-			cutSheetFile, err := os.Stat(cutSheet)
-			if err != nil {
-				fmt.Println(err)
-				continue NextRow
-			}
+			if !sheetJob {
+				// insert cut-sheet
+				cutSheet := path.Join(taskFolder, fmt.Sprintf("CUT PAPER HERE_%s_%s_task%d_report.pdf", log, fabric, id))
+				firstSheet := path.Join(taskFolder, fmt.Sprintf("NEW ROLL START HERE_%s_%s_task%d_report.pdf", log, fabric, id))
+				rollInfo := RollInfo{
+					Log:      log,
+					Fabric:   fmt.Sprintf("%s(%s)", fabric, strings.Split(folderid, "_")[4]),
+					Printer:  printer,
+					Height:   length,
+					DaysToGo: daystogo,
+					Units:    units,
+				}
+				if err = generateRollReport(rollInfo, cutSheet, "CUT PAPER HERE!"); err != nil {
+					fmt.Println(err)
+					continue NextRow
+				}
+				cutSheetFile, err := os.Stat(cutSheet)
+				if err != nil {
+					fmt.Println(err)
+					continue NextRow
+				}
 
-			pdfFiles = append(pdfFiles, cutSheetFile)
+				pdfFiles = append(pdfFiles, cutSheetFile)
 
-			if err = generateRollReport(rollInfo, firstSheet, "START NEW ROLL!!"); err != nil {
-				fmt.Println(err)
-				continue NextRow
-			}
-			firstSheetFile, err := os.Stat(firstSheet)
-			if err != nil {
-				fmt.Println(err)
-				continue NextRow
-			}
+				if err = generateRollReport(rollInfo, firstSheet, "START NEW ROLL!!"); err != nil {
+					fmt.Println(err)
+					continue NextRow
+				}
+				firstSheetFile, err := os.Stat(firstSheet)
+				if err != nil {
+					fmt.Println(err)
+					continue NextRow
+				}
 
-			pdfFiles = append([]os.FileInfo{firstSheetFile}, pdfFiles...)
+				pdfFiles = append([]os.FileInfo{firstSheetFile}, pdfFiles...)
+			}
 
 			for index, pdfFile := range pdfFiles {
 				fname := pdfFile.Name()
@@ -429,7 +432,7 @@ func dispatchPrintJob(printer string, cfg Configuration, printers map[string]str
 				}
 
 				// wait for empty folder
-				if index == 0 {
+				if index == 0 && !sheetJob {
 					for {
 						if files, err := filepath.Glob(path.Join(printerFolder, "*.pdf")); err != nil || len(files) > 0 {
 							time.Sleep(1 * time.Second)
