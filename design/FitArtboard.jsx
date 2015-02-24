@@ -1,11 +1,11 @@
 ﻿
-function initOutline(){
+function getOutline(actionName){
   var items = app.activeDocument.selection;
   for(var i = 0;i < items.length;i++){
     items[i].selected = false;
   }
 
-  app.doScript ("select outlines", "Default Actions");
+  app.doScript (actionName, "Default Actions"); //"select outlines"
   items = app.activeDocument.selection;
   for(var i = 0;i < items.length;i++){
     items[i].selected = false;
@@ -40,7 +40,20 @@ function getArtboard(pi){
   }
 }
 
-var items = initOutline ();
+var swcolor = 0;
+try {
+  swcolor = app.activeDocument.swatches.getByName ("NIKE LIGHT BLUE");
+}
+catch(e) {
+}
+
+var items;
+if (swcolor){
+  items = getOutline("select outlines");
+}else{
+  items = getOutline("select outlines1");
+}
+
 for (var i=0; i<items.length; i++){
   fitAll(items[i]);
 }
