@@ -217,7 +217,7 @@ var PrintBoard = function(artboard, roll){
       this.place_dot_around(rect);
     }
 
-    var ex_rect = rect.get_expand_rect(DOT_SIZE);
+    var ex_rect = rect.get_expand_rect(DOT_SIZE*(this.roll?1:4));
     if (ex_rect.b < this.lowest)
       this.lowest = ex_rect.b;
 
