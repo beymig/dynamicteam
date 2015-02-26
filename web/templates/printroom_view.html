@@ -46,15 +46,19 @@ function reprint_sheets(taskid, printer){
 
 function sum_units_up(){
   var totalUnits = 0;
+  var counted = [];
   var tasks=$("div.dyt-task-item");
   $.each(tasks, function(idx, value){
       var fields = $(value).children("span");
       var log = $(fields[0]).text();
-      var units = $(fields[3]).text();
-      if (log.indexOf('redo')==-1 && units && !isNaN(units)){
-        totalUnits += parseInt(units);
+      if (!~counted.indexOf(log)){
+        var units = $(fields[3]).text();
+        if (log.indexOf('redo')==-1 && units && !isNaN(units)){
+          totalUnits += parseInt(units);
+        }
+        counted.push(log);
       }
-      });
+    });
   return totalUnits;
 }
 
