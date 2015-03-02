@@ -5,6 +5,7 @@ var CUT_OUTPUT_FOLDER_MID = "r:\\READY_TO_CUT";
 var COMBINING_PREFIX = "combining"
 var COMBINED_PREFIX = "combined"
 var DOT_FILE = "R:\\daniel_test\\dot.pdf";
+var ORIGINAL_PDF_FOLDER="d:\\daniel_test\\original_pdf,d:\\daniel_test\\original_pdf2";
 var DOT_SIZE = 30;
 var TITLE_SIZE = 50;
 var CUTCODE_TEXTFRAME;

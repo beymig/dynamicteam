@@ -580,9 +580,55 @@ function createTitleText(){
   return pointTextRef;
 }
 
+function getLogFolder(sFolder, log){
+  $.writeln(sFolder, log);
+  var f = Folder(sFolder);
+  var path = []
+  path.push(log.substr(0, 3));
+  path.push(log);
+  //path.push(log+"_*");
+  var subf = f;
+  for ( var i = 0; i<path.length; i++){
+    var tmp = subf.getFiles(path[i]);
+    var subfs = tmp.filter(function(f){return f instanceof Folder;});
+    if(subfs.length){
+      subf = subfs[0];
+    }else{
+      subf = null;
+      return [];
+      }
+    }
+  return subf.getFiles(log+"_*").filter(function(f){return f instanceof Folder;});   
+}
+
 function main(){
   // Select the source folder.
-  var source = Folder.selectDialog('Select the folder with Illustrator files that you want to mere into one', '~');
+  var source;
+  var logNumber = Window.prompt("Enter log number and press Enter or click OK. Click Cancle if you need perform a redo.", "", "Log Number");
+  if (logNumber != undefined){
+    var searchFolders = ORIGINAL_PDF_FOLDER.split(",");
+    var logFolders = [];
+    for (var i=0; i<searchFolders.length; i++){
+      logFolders = logFolders.concat(getLogFolder(searchFolders[i], logNumber));
+    }
+    if(logFolders.length==1){
+      source = logFolders[0];
+    }else if(logFolders.length==0){
+      Window.alert("No folder for log:'"+logNumber+"'find!");
+      return;
+    }else{
+      Window.alert("Multipule folder for log:'"+logNumber+"'find!");
+      return;
+    }
+  }
+  /*var dlg = new Window('dialog', 'input log number');
+  dlg.msgPnl = dlg.add('panel', undefined, 'Log');
+  dlg.msgPnl.log = dlg.msgPnl.add('edittext', undefined, '');
+  dlg.msgPnl.onEnterKey = function(){logNumber = "123456"};
+  dlg.msgPnl.log.onEnterKey = function(){logNumber = "0123456"};
+  dlg.show();
+  
+  var source = Folder.selectDialog('Select the folder with Illustrator files that you want to mere into one', '~'); */
 
   if(!source)
     source = File.openDialog('Select the folder with Illustrator files that you want to mere into one', '*.redo');
