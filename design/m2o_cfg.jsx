@@ -2,9 +2,10 @@
 var OUTPUT_FOLDER = "R:\\NewTasks";
 var CUT_OUTPUT_FOLDER = "N:\\";
 var CUT_OUTPUT_FOLDER_MID = "r:\\READY_TO_CUT";
-var COMBINING_PREFIX = "combining"
-var COMBINED_PREFIX = "combined"
+var COMBINING_PREFIX = "combining";
+var COMBINED_PREFIX = "combined";
 var DOT_FILE = "R:\\daniel_test\\dot.pdf";
+var ORIGINAL_PDF_FOLDER="O:\\FINISH ORDERS\\ERGO,O:\\FINISH ORDERS\\DYNAMIC ORDERS";
 var DOT_SIZE = 30;
 var TITLE_SIZE = 50;
 var CUTCODE_TEXTFRAME;
@@ -35,7 +36,7 @@ var FABRIC_LIST = {
   "29176":["LACROSSE", 54, 70],
   "1649 DYNA DRY":["DYNA-DRY", 60, 60],
   "2031 DYNA DRY":["DYNA-DRY", 60, 60],
-  "AEROFIBER":["DYNAMIC", 62, 90],
+  "AEROFIBER":["DYNAMIC", 60, 90],
   "DRY-TEC":["DYNAMIC", 60, 90],
   "DAZZLE":["DYNAMIC", 60, 90],
   "5235":["FLEX-DRY", 60, 90],
@@ -44,7 +45,8 @@ var FABRIC_LIST = {
   "9737-001":["DYNAMIC", 60, 90],
   "9679-005":["DYNAMIC", 54, 90],
   "RICE-MESH":["DYNAMIC", 61, 90],
-  "STRETCH TEC":["DYNAMIC", 64, 90],
+  "STRETCH TEC":["DYNAMIC", 60, 90],
+  "5377H":["DYNAMIC", 60, 90],
   "791-PANTS":["HEAVY POLYESTER", 62, 90],
   "F791":["HEAVY POLYESTER", 62, 90],
   "298-JERSEY":["HEAVY POLYESTER", 60, 90],
@@ -59,6 +61,8 @@ var FABRIC_LIST = {
   "1997-18":["NIKE", 54, 80],
   "1887":["NIKE", 55, 80],
   "5106":["NIKE", 62, 80],
+  "SHEETS":["SHEET", 53, 53],
+  "SHEETL":["SHEET", 64, 64],
 };
 
 var size_order = ["AXXXXLT", "AXXXLT","AXXLT", "AXLT", "ALT", "AMT", "AST", "AXXXXL", "AXXXL", "AXXL", "AXL", "AL", "AM", "AS", "AXS", "AXXS", "YXXL", "YXL", "YL", "YM", "YS"];

@@ -91,6 +91,10 @@ def redo_report():
 def redo_view():
   return render_template('redo.html')
 
+@app.route('/blanklist', methods=['GET'])
+def blank_view():
+  return render_template('blanklist.html')
+
 @app.route('/')
 @app.route('/printroom', methods=['GET'])
 def show_tasks():

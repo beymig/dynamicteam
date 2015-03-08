@@ -3,10 +3,12 @@
 <script>
 var selected_printer = "";
 function sendjob(taskid, printer){
+  var fabric = $($("li#list-task-"+taskid+">div>span")[1]).text();
+  var sheetJob = (fabric=="SHEETS")||(fabric=="SHEETL");
   $.post("{{ url_for('sendjob') }}", 
     {
       taskid:taskid,
-      printerid:selected_printer
+      printerid: (sheetJob?"NZ":"")+selected_printer
       }, function(){
       window.location.href = "{{ url_for('show_tasks') }}";
       });
@@ -21,13 +23,15 @@ function deletejob(taskid, printer){
       });
 }
 
-function reprint_sheets(panel_id, printer){
+function reprint_sheets(taskid, printer){
+  var fabric = $($("li#list-task-"+taskid+">div>span")[1]).text();
+  var sheetJob = (fabric=="SHEETS")||(fabric=="SHEETL");
   var req = {
-    printerid:printer,
+    printerid:(sheetJob?"NZ":"")+printer,
               sheets:""
   }
   var sheets = [];
-  var checkboxs = $("#"+panel_id + " .select-sheet");
+  var checkboxs = $("#sheets-panel-"+taskid + " .select-sheet");
   for ( var i=0; i<checkboxs.length; i++){
     if (checkboxs[i].checked==true)
       sheets.push(checkboxs[i].id);
@@ -42,15 +46,19 @@ function reprint_sheets(panel_id, printer){
 
 function sum_units_up(){
   var totalUnits = 0;
+  var counted = [];
   var tasks=$("div.dyt-task-item");
   $.each(tasks, function(idx, value){
       var fields = $(value).children("span");
       var log = $(fields[0]).text();
-      var units = $(fields[3]).text();
-      if (log.indexOf('redo')==-1 && units && !isNaN(units)){
-        totalUnits += parseInt(units);
+      if (!~counted.indexOf(log)){
+        var units = $(fields[3]).text();
+        if (log.indexOf('redo')==-1 && units && !isNaN(units)){
+          totalUnits += parseInt(units);
+        }
+        counted.push(log);
       }
-      });
+    });
   return totalUnits;
 }
 
@@ -214,7 +222,7 @@ $( document ).ready(function() {
         <div class="row show-grid" style="margin:5px; padding-left: 5px;">
           <button type="button" class="btn btn-warning" onclick="$('#sheets-panel-{{ task.id }} .select-sheet').prop('checked', true)">Select All</button>
           <button type="button" class="btn btn-success" onclick="$('#sheets-panel-{{ task.id }} .select-sheet').prop('checked', false)">Clear Selected</button>
-          <button type="button" class="btn btn-primary dyt-sheet-reprint col-md-offset-4" onclick="reprint_sheets('sheets-panel-{{ task.id }}', selected_printer)">Reprint</button>
+          <button type="button" class="btn btn-primary dyt-sheet-reprint col-md-offset-4" onclick="reprint_sheets('{{ task.id }}', selected_printer)">Reprint</button>
         </div>
         <!--hr class="divider">
         {% for sheet in task.sheets %}
