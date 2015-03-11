@@ -9,7 +9,8 @@
 // Copyright 2011 Matthew Ericson
 // Comments or suggestions to mericson@ericson.net
 
-$.writeln("abcdefg")
+#include "json2.js"
+
 var docRef = app.activeDocument;
 
 var nyt_png_exporter = {
@@ -37,7 +38,12 @@ var nyt_png_exporter = {
   
   num_artboards:  0,
   num_artboards_to_export: 0,
-  
+
+  exportInfo: {
+    sizeInfo:{},
+    blankInfo:{},
+  },
+
   init: function() {
     // figure out if there is stuff to process
     this.num_layers = docRef.layers.length;
@@ -88,7 +94,7 @@ var nyt_png_exporter = {
         this.nph = this.prefs_xml.nyt_num_placeholder;
         this.nreq = this.prefs_xml.nyt_num_reqired;
         this.prefix             = this.prefs_xml.nyt_size;
-        this.suffix             = docRef.name.split('_')[0];
+        this.suffix             = "_" + docRef.name.split('_')[0];
         this.base_path          = app.activeDocument.fullName.path; //this.prefs_xml.nyt_base_path;
 
         parse_success = true;
@@ -97,6 +103,12 @@ var nyt_png_exporter = {
       }
     }
     return parse_success;
+  },
+
+  generate_info_file: function(){
+    var infoFile = new File(this.base_path+"/exportinfo.json");
+    infoFile.open("w");
+    infoFile.write(JSON.stringify(this.exportInfo, null, 2));
   },
 
   // dialog display
@@ -133,22 +145,7 @@ var nyt_png_exporter = {
     var nreqEt = typeGrp.add('edittext', undefined, this.nreq); 
     nreqEt.size = [ 300,20 ];
 
-    // PREFIX GRP
-    var prefixGrp = msgPnl.add('group', undefined, '')
-    prefixGrp.oreintation = 'row';
-    prefixGrp.alignment = [ScriptUI.Alignment.LEFT, ScriptUI.Alignment.TOP]
-
-    var prefixSt = prefixGrp.add('statictext', undefined, 'Size:'); 
-    prefixSt.size = [100,20]
-
-    var prefixEt = prefixGrp.add('edittext', undefined, this.prefix); 
-    prefixEt.size = [ 300,20 ];
-
-    var prefixGrp = msgPnl.add('group', undefined, '')
-    prefixGrp.oreintation = 'row';
-    prefixGrp.alignment = [ScriptUI.Alignment.LEFT, ScriptUI.Alignment.TOP]
-
-    var suffixGrp = msgPnl.add('group', undefined, '')
+    /*var suffixGrp = msgPnl.add('group', undefined, '')
     suffixGrp.oreintation = 'row';
     suffixGrp.alignment = [ScriptUI.Alignment.LEFT, ScriptUI.Alignment.TOP]
 
@@ -156,7 +153,7 @@ var nyt_png_exporter = {
     suffixSt.size = [100,20]
 
     var suffixEt = suffixGrp.add('edittext', undefined, this.suffix); 
-    suffixEt.size = [ 300,20 ];
+    suffixEt.size = [ 300,20 ];*/
 
     // DIR GROUP
     var dirGrp = msgPnl.add( 'group', undefined, '') 
@@ -192,8 +189,8 @@ var nyt_png_exporter = {
     // OK button
     btnPnl.okBtn = btnPnl.add('button', undefined, 'Export', {name:'ok'});
     btnPnl.okBtn.onClick = function() { 
-      nyt_png_exporter.prefix       = prefixEt.text; 
-      nyt_png_exporter.suffix       = suffixEt.text; 
+      nyt_png_exporter.prefix       = app.activeDocument.activeDataSet.name.split("_")[0] + "_";
+      //nyt_png_exporter.suffix       = suffixEt.text; 
       nyt_png_exporter.base_path    = dirEt.text;   
         
       var qty = isNaN(parseInt(qtyEt.text))?1:parseInt(qtyEt.text );
@@ -218,6 +215,7 @@ var nyt_png_exporter = {
       {
         nyt_png_exporter.run_export(qty, '');
       }
+      nyt_png_exporter.generate_info_file();
     };
     
     nyt_png_exporter.update_export_desc( progLabel );
@@ -255,10 +253,23 @@ var nyt_png_exporter = {
 
       // Process this artbarod if we're exporting only a single one (layers mode) or if it doesn't have generic name or minus
       if (!( artboardName.match(  /^artboard/i ) || artboardName.match( /^\-/ ) )) {
+        var fileid = this.prefix + artboardName + this.suffix + num;
+
+        if (~artboardName.indexOf(" blank")){
+          var blankid = this.prefix + artboardName.replace(" blank", "");
+          var blankInfo = this.exportInfo.blankInfo;
+          if (blankid in blankInfo){
+            blankInfo[blankid] += qty;
+          }
+          else{
+            blankInfo[blankid] = qty;
+          }
+          continue;
+        }
       
         // if exporting artboard by artboard, export layers as is
         //if ( this.export_code == 'artboards' ) {
-        var base_filename = this.base_path + "/" + this.prefix + artboardName + this.suffix + num
+        var base_filename = this.base_path + "/" + fileid
 
         //} else if ( this.format.match( /^PDF/ )) {
         var first_file_name = base_filename + '.pdf';
