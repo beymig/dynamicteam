@@ -111,6 +111,14 @@ var nyt_png_exporter = {
     infoFile.write(JSON.stringify(this.exportInfo, null, 2));
   },
 
+  load_generate_info: function(){
+    var infoFile = new File(this.base_path+"/exportinfo.json");
+    if ( infoFile.exists ) {
+      infoFile.open("r");
+      this.exportInfo = JSON.parse(infoFile.read());
+    }
+  },
+
   // dialog display
   show_dialog: function() {
     // Export dialog
@@ -196,6 +204,8 @@ var nyt_png_exporter = {
       var qty = isNaN(parseInt(qtyEt.text))?1:parseInt(qtyEt.text );
       this.nph = nphEt.text;
       this.nreq = nreqEt.text;
+
+      nyt_png_exporter.load_generate_info();
 
       if(this.nph)
       {
