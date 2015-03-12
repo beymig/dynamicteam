@@ -47,6 +47,7 @@ type ExportInfo struct {
 
 func loadJsonFromFile(file string, v interface{}) error {
 	f, _ := os.Open(file)
+	defer f.Close()
 	decoder := json.NewDecoder(f)
 	if err := decoder.Decode(v); err != nil {
 		return err
@@ -324,13 +325,18 @@ func dispatchPrintJob(printer string, cfg Configuration, printers map[string]str
 
 				for blank, count := range exportInfo.BlankInfo {
 					blankFabric := getBlankFabric(blank)
-					if blankFabric == fabric {
-						// insert blank info to db
-						_, err = con.Exec("insert into blank (log, fabric, name, count, status) values(?, ?, ?, ?,?)", log, blankFabric, blank, count, "new")
-						if err != nil {
-							fmt.Println(err)
-						}
+					//if blankFabric == fabric {
+					// insert blank info to db
+					_, err = con.Exec("insert into blank (log, fabric, name, count, status) values(?, ?, ?, ?,?)", log, blankFabric, blank, count, "new")
+					if err != nil {
+						fmt.Println(err)
+						//		}
 					}
+				}
+				err = os.Rename(exportInfoFile, exportInfoFile+".done")
+				if err != nil {
+					fmt.Println(err)
+					fmt.Printf("Move folder failed:\t%s", exportInfoFile)
 				}
 			}
 
