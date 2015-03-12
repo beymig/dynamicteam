@@ -40,6 +40,20 @@ type RollInfo struct {
 	Total      int
 }
 
+type ExportInfo struct {
+	SizeInfo  map[string]string
+	BlankInfo map[string]int
+}
+
+func loadJsonFromFile(file string, v interface{}) error {
+	f, _ := os.Open(file)
+	decoder := json.NewDecoder(f)
+	if err := decoder.Decode(v); err != nil {
+		return err
+	}
+	return nil
+}
+
 func load_config(file string) Configuration {
 	f, _ := os.Open(file)
 	decoder := json.NewDecoder(f)
@@ -60,6 +74,14 @@ func load_printers(file string) map[string]string {
 		fmt.Println("error:", err)
 	}
 	return printers
+}
+
+func getBlankFabric(blankName string) string {
+	attrs := strings.Split(blankName, "_")
+	if attrs[1] == "FLAT" {
+		return attrs[2]
+	}
+	return attrs[1]
 }
 
 func fileEndWith(fname string, s string) bool {
@@ -192,87 +214,6 @@ func getAssignedSheets(con *sql.DB, printer string) (sheets []Sheet, err error) 
 	return
 }
 
-/*func copyOneByOne(con *sql.DB, srcFolder string, sheets []Sheet, dstFolder string) (err error) {
-	for _, sheet := range sheets {
-		if _, err = con.Exec("update sheet set status='dispatching' where id=?", sheet.ID); err != nil {
-			fmt.Println("update sheet dispatching error", sheet.ID, sheet.FileSrc, err)
-			return
-		}
-
-		srcpath := path.Join(srcFolder, sheet.FileSrc)
-		dstpath := path.Join(dstFolder, sheet.FileSrc)
-		if err = copyFile(dstpath, srcpath); err != nil {
-			fmt.Println("Sheet copy error", sheet.FileSrc, err)
-			return
-		}
-
-		for {
-			time.Sleep(1 * time.Second)
-			if _, err = os.Stat(dstpath); os.IsNotExist(err) {
-				if _, err = con.Exec("update sheet set status='dispatched' where id=?", sheet.ID); err != nil {
-					fmt.Println("update sheet dispatched error", sheet.FileSrc, err)
-					return
-				}
-				break
-			}
-		}
-	}
-	return
-}*/
-
-/*
-func dispatchSheets(printer string, cfg Configuration, printers map[string]string) (err error) {
-	con, err := sql.Open("mysql", cfg.DBStr+"?parseTime=true")
-	if err != nil {
-		return
-	}
-	defer con.Close()
-
-	for {
-		// query sheets
-		sheets, err := getAssignedSheets(con, printer)
-		if err != nil {
-		}
-
-		var srcFolder string
-
-		if len(sheets) > 0 {
-			taskid := sheets[0].TaskID
-			taskrows, err := con.Query("SELECT folderid, status from task WHERE id=?", sheets[0].TaskID)
-			if err != nil {
-			}
-
-			taskrows.Next()
-			var folderid, status string
-			if err = taskrows.Scan(&folderid, &status); err != nil {
-				fmt.Println("Sheet scan task error", err)
-				taskrows.Close()
-				return err
-			}
-			taskrows.Close()
-
-			srcFolder = path.Join(cfg.DoneFolder, folderid)
-			switch status {
-			case "dispatched":
-			case "assigned":
-				if _, err := con.Exec("update task set status='dispatching' where id=?", taskid); err != nil {
-					fmt.Println("update task error", err)
-					return err
-				}
-			default:
-				fmt.Println("May be error Here")
-				continue
-			}
-		}
-
-		// print in queue
-		if err = copyOneByOne(con, srcFolder, sheets, path.Join(cfg.HotFolder, printers[printer])); err != nil {
-			// record the error somewhere
-		}
-		time.Sleep(1 * time.Second)
-	}
-}*/
-
 func dispatchReprintSheets(con *sql.DB, printer string, cfg Configuration, printers map[string]string) error {
 	doneRoot := cfg.DoneFolder
 	hotfolder := cfg.HotFolder
@@ -330,6 +271,7 @@ func dispatchPrintJob(printer string, cfg Configuration, printers map[string]str
 	//printers := load_printers("printers.json")
 	printerFolder := path.Join(hotfolder, printers[printer])
 	sheetJob := strings.HasPrefix(printer, "NZ")
+	searchFolders := strings.Split(cfg.OriginalPDFFolder, ",")
 
 	con, err := sql.Open("mysql", cfg.DBStr+"?parseTime=true")
 	if err != nil {
@@ -372,6 +314,24 @@ func dispatchPrintJob(printer string, cfg Configuration, printers map[string]str
 			taskFolder := path.Join(newTaskRoot, folderid)
 			doneFolder := path.Join(doneRoot, folderid)
 			pdfFiles, err := ioutil.ReadDir(taskFolder)
+
+			var exportInfo ExportInfo
+			exportFolder := getPathByLog(searchFolders, log)
+			exportInfoFile := path.Join(exportFolder, "exportinfo.json")
+			fmt.Println("exportInfoFile", exportInfoFile)
+			if _, err := os.Stat(exportInfoFile); err == nil {
+				loadJsonFromFile(exportInfoFile, &exportInfo)
+
+				for blank, count := range exportInfo.BlankInfo {
+					if getBlankFabric(blank) == fabric {
+						// insert blank info to db
+						_, err = con.Exec("insert into blank (log, name, count, status) values(?, ?, ?,?)", log, blank, count, "new")
+						if err != nil {
+							fmt.Println(err)
+						}
+					}
+				}
+			}
 
 			if !sheetJob {
 				// insert cut-sheet
