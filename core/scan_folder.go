@@ -323,9 +323,10 @@ func dispatchPrintJob(printer string, cfg Configuration, printers map[string]str
 				loadJsonFromFile(exportInfoFile, &exportInfo)
 
 				for blank, count := range exportInfo.BlankInfo {
-					if getBlankFabric(blank) == fabric {
+					blankFabric := getBlankFabric(blank)
+					if blankFabric == fabric {
 						// insert blank info to db
-						_, err = con.Exec("insert into blank (log, name, count, status) values(?, ?, ?,?)", log, blank, count, "new")
+						_, err = con.Exec("insert into blank (log, fabric, name, count, status) values(?, ?, ?, ?,?)", log, blankFabric, blank, count, "new")
 						if err != nil {
 							fmt.Println(err)
 						}

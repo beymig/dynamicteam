@@ -19,6 +19,14 @@ class Orders(db.Model):
   create_at = db.Column(db.Date)
   daytogo = db.Column(db.Date)
 
+class Blank(db.Model):
+  id = db.Column(db.Integer, primary_key=True)
+  log = db.Column(db.String(10), nullable=False)
+  fabric = db.Column(db.String(20), nullable=False)
+  name = db.Column(db.String(50), nullable=False)
+  count = db.Column(db.Integer, nullable=False)
+  status = db.Column(db.String(20))
+
 
 class Task(db.Model):
   id = db.Column(db.Integer, primary_key=True)
@@ -91,9 +99,36 @@ def redo_report():
 def redo_view():
   return render_template('redo.html')
 
+@app.route('/blanklist/setstatus', methods=['POST'])
+def set_blank_staus():
+  blankid, status = int(request.form['blankid']), request.form['status']
+  b = Blank.query.get(blankid)
+  b.status = status
+  db.session.commit()
+
+  return redirect(url_for('blank_view'))
+
 @app.route('/blanklist', methods=['GET'])
 def blank_view():
-  return render_template('blanklist.html')
+  blanks_wait = sorted(Blank.query.filter_by(status="new").all(), key=lambda b:(b.log, b.fabric))
+  blanks_done = sorted(Blank.query.filter_by(status="done").all(), key=lambda b:(b.log, b.fabric))
+
+  log = fabric = ""
+  for bs in (blanks_wait, blanks_done):
+    for b in bs:
+      b.log_show = b.log
+      b.fabric_show = b.fabric
+      if b.log == log:
+        b.log_show = ""
+        if fabric == b.fabric:
+          b.fabric_show = ""
+        else:
+          fabric = b.fabric
+      else:
+        log = b.log
+        fabric = b.fabric
+
+  return render_template('blanklist.html', blanks_wait=blanks_wait, blanks_done=blanks_done)
 
 @app.route('/')
 @app.route('/printroom', methods=['GET'])

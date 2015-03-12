@@ -1,66 +1,80 @@
 {% extends "layout.html" %}
 {% block body %}
+<script>
+$( document ).ready(function() {
+    $('.navbar-nav li').removeClass('active');
+    $('.navbar-nav #nav-blanklist').addClass('active');
+});
+
+function setBlankStatus(blankid, bstatus){
+  $.post("{{ url_for('set_blank_staus') }}", 
+    {
+      blankid:blankid,
+      status: bstatus
+      }, function(){
+      window.location.href = "{{ url_for('blank_view') }}";
+      });
+}
+</script>
 <div class="col-sm-12 col-sm-offset-1 col-md-11 col-md-offset-1 main">
-<h2>Blank Pieces List</h2>
-<nav class="navbar navbar-default" >
-<form class="navbar-form navbar-left" role="search">
-  <div class="col-xs-12">
-    <div class="input-group">
-      <input type="text" class="form-control" placeholder="Log#">
-      <span class="input-group-btn">
-        <button class="btn btn-default" type="button">Search</button>
-      </span>
-    </div><!-- /input-group -->
-  </div><!-- /.col-lg-6 -->
-</form>
+  <h2>Blank Pieces List</h2>
+  <nav class="navbar navbar-default" >
+  <form class="navbar-form navbar-left" role="search">
+    <div class="col-xs-12">
+      <div class="input-group">
+        <input type="text" class="form-control" placeholder="Log#">
+        <span class="input-group-btn">
+          <button class="btn btn-default" type="button">Search</button>
+        </span>
+      </div><!-- /input-group -->
+    </div><!-- /.col-lg-6 -->
+  </form>
 
-</nav>
+  </nav>
 
-<ul class="list-group">
-{% for blank in (
-  ("833123", "fabric1", "INNER_BACK_NECK"),
-  ("", "fabric1", "INNER_FRONT_NECK"),
-  ("", "fabric2", "INNER_FRONT_NECK"),
-  ("123456", "FABRIC", "INNER_BACK_NECK"),
-  ("", "Another FABRIC", "INNER_BACK_NECK")) %}
-  <li class="list-group-item">
-    <span class="col-xs-2">{{ blank[0] }}</span>
-    <span class="col-xs-2">{{ blank[1] }}</span>
-    <span class="col-xs-2">{{ blank[2] }}</span>
-    <button type="button" class="btn btn-xs btn-success" aria-label="delete">
-      <span class="glyphicon glyphicon-ok" aria-hidden="true"> Done!</span>
-    </button>
-  </li>
-{% endfor %}
-</ul>
+  <ul class="list-group">
+    <!--(
+    ("833123", "fabric1", "INNER_BACK_NECK"),
+    ("", "fabric1", "INNER_FRONT_NECK"),
+    ("", "fabric2", "INNER_FRONT_NECK"),
+    ("123456", "FABRIC", "INNER_BACK_NECK"),
+    ("", "Another FABRIC", "INNER_BACK_NECK"))-->
+  {% for blank in blanks_wait %}
+    <li class="list-group-item">
+      <span class="col-xs-2">{{ blank.log_show }}</span>
+      <span class="col-xs-2">{{ blank.fabric_show }}</span>
+      <span class="col-xs-3">{{ blank.name }}</span>
+      <span class="col-xs-1">{{ blank.count }}</span>
+      <button type="button" class="btn btn-xs btn-success" onclick="setBlankStatus({{ blank.id }}, 'done');" aria-label="done">
+        <span class="glyphicon glyphicon-ok" aria-hidden="true"> Done!</span>
+      </button>
+    </li>
+  {% endfor %}
+  </ul>
 
-      <div class="row show-grid " data-toggle="collapse" href="#sheets-panel">
-        <div class="col-xs-2 col-sm-offset-4 label label-default">
-          <span>Show</span>
-        <span aria-hidden="true" class="glyphicon glyphicon-arrow-down"></span>
-        <span aria-hidden="true" class="glyphicon glyphicon-arrow-down"></span>
-        <span aria-hidden="true" class="glyphicon glyphicon-arrow-down"></span>
-        <span>Done</span>
-      </div>
-      </div>
-      <div id="sheets-panel" class="panel-collapse collapse" >
-        <ul class="list-group">
-        {% for blank in (
-          ("833123", "fabric1", "INNER_BACK_NECK"),
-          ("", "fabric1", "INNER_FRONT_NECK"),
-          ("", "fabric2", "INNER_FRONT_NECK"),
-          ("123456", "FABRIC", "INNER_BACK_NECK"),
-          ("", "Another FABRIC", "INNER_BACK_NECK")) %}
-          <li class="list-group-item">
-            <span class="col-xs-2">{{ blank[0] }}</span>
-            <span class="col-xs-2">{{ blank[1] }}</span>
-            <span class="col-xs-2">{{ blank[2] }}</span>
-            <button type="button" class="btn btn-xs btn-danger" aria-label="delete">
-              <span class="glyphicon glyphicon-repeat" aria-hidden="true"> Undo it!</span>
-            </button>
-          </li>
-        {% endfor %}
-        </ul>
-      </div>
+  <div class="row show-grid " data-toggle="collapse" href="#sheets-panel">
+    <div class="col-xs-2 col-sm-offset-4 label label-default">
+      <span>Show</span>
+      <span aria-hidden="true" class="glyphicon glyphicon-arrow-down"></span>
+      <span aria-hidden="true" class="glyphicon glyphicon-arrow-down"></span>
+      <span aria-hidden="true" class="glyphicon glyphicon-arrow-down"></span>
+      <span>Done</span>
+    </div>
+  </div>
+  <div id="sheets-panel" class="panel-collapse collapse" >
+    <ul class="list-group">
+    {% for blank in blanks_done %}
+      <li class="list-group-item">
+      <span class="col-xs-2">{{ blank.log_show }}</span>
+      <span class="col-xs-2">{{ blank.fabric_show }}</span>
+      <span class="col-xs-3">{{ blank.name }}</span>
+      <span class="col-xs-1">{{ blank.count }}</span>
+        <button type="button" class="btn btn-xs btn-danger" onclick="setBlankStatus({{ blank.id }}, 'new');" aria-label="undo">
+          <span class="glyphicon glyphicon-repeat" aria-hidden="true"> Undo it!</span>
+        </button>
+      </li>
+    {% endfor %}
+    </ul>
+  </div>
 </div>
 {% endblock %}
