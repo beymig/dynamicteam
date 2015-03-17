@@ -361,7 +361,7 @@ var Task = function(source){
       var attrs = folderName.split("_");
       this.log = attrs[0];
       if ( attrs[1]=="S" || attrs[1]=="L"){
-        this.roll = false;
+        this.roll = true;
         this.unit_count = attrs[2];
         this.filesArrangeStruct = {}
         this.filesArrangeStruct["SHEET"+attrs[1]]= [["mix", files.map(function(f){ return ["", "", f];})]];
