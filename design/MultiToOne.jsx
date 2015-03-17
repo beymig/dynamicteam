@@ -299,8 +299,6 @@ var Task = function(source){
             attr = attr.slice(1);
           }
           return [attr[0], attr[attr.length-1], f]; //[size, number]
-        }).filter(function(f){
-          return !isNaN(f[1]);
         }).groupBy(function(item){ return [item[0], item[1]].join('_'); });
 
 
@@ -312,7 +310,7 @@ var Task = function(source){
           if (lf[0]!=rf[0]){
             return size_order.indexOf(lf[0]) - size_order.indexOf(rf[0]);
           }else{
-            return parseInt(lf[1])-parseInt(rf[1]);
+            return (parseInt(lf[1])||0) - (parseInt(rf[1])||0);
           }
         }).map(function(item){return [item, sheetGroup[item]];});
       }
