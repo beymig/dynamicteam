@@ -469,7 +469,7 @@ func getPathByLog(searchFolders []string, log string) string {
 			fmt.Println("search file ", err)
 			continue
 		}
-		for i, fpath := range fpaths {
+		for _, fpath := range fpaths {
 			finfo, _ := os.Stat(fpath)
 			if finfo.IsDir() {
 				return fpath
