@@ -464,13 +464,16 @@ func generateRollReport(rollInfo RollInfo, fpath string, prompt string) (err err
 
 func getPathByLog(searchFolders []string, log string) string {
 	for _, folder := range searchFolders {
-		fpath, err := filepath.Glob(filepath.Join(folder, log[0:3], log, log+"_*"))
+		fpaths, err := filepath.Glob(filepath.Join(folder, log[0:3], log, log+"_*"))
 		if err != nil {
 			fmt.Println("search file ", err)
 			continue
 		}
-		if len(fpath) > 0 {
-			return fpath[0]
+		for i, fpath := range fpaths {
+			finfo, _ := os.Stat(fpath)
+			if finfo.IsDir() {
+				return fpath
+			}
 		}
 	}
 	return ""
@@ -521,6 +524,7 @@ func fileListService(cfg Configuration) {
 		files := r.PostForm.Get("files")
 		fmt.Println("log:", log)
 		//fmt.Printf("files:%#v", files)
+		// TODO: Remove path information from redo file. This part of job should be done by jsx
 		logPath := getPathByLog(searchFolders, log)
 		fname := strings.Replace(filepath.Base(logPath), log, log+"redo", 1)
 		redoFile, err := os.OpenFile(filepath.Join(cfg.RedoFolder, fname+time.Now().Format("_06Jan02-150405.redo")), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
