@@ -157,6 +157,7 @@ $( document ).ready(function() {
       <li role="presentation" {% if view=='day-%d'%d %} class="active" {% endif %}><a href="{{ url_for('show_tasks') }}?view={{ "day-%d"|format(d) }}">{{ "day-%d"|format(d) }}<span class="badge">{{ task_counts[d+1] }}</span></a></li>
       {% endfor %}
       <li><a href="{{ url_for('show_sheet_tasks') }}" target="_blank">sheet list</a></li>
+      <li><a href="{{ url_for('show_roll_tasks') }}" target="_blank">roll list</a></li>
     </ul>
     <ul class="list-group panel-group" id="tasks" >
       <li class='list-group-item list-group-item-info'>

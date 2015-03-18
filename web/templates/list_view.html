@@ -31,7 +31,7 @@
     {% if printbtn %}<button onclick="window.print();">Print this page</button>{% endif %}
     <h2>{{ title }}</h2>
   {% for item in items %}
-  <div class="fileid-list col-xs-12 col-sm-12 col-md-6 col-lg-6"><p>{{ item }}</p></div>
+  <div class="fileid-list col-md-{{ width }}"><p>{{ item }}</p></div>
   {% endfor %}
   </div>
 </body>
