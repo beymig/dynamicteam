@@ -279,12 +279,13 @@ var nyt_png_exporter = {
       
         // if exporting artboard by artboard, export layers as is
         //if ( this.export_code == 'artboards' ) {
-        var base_filename = this.base_path + "/" + fileid
+        var base_filename = this.base_path + "/" + fileid;
+        var qty_delim = num?' ':'_';
 
         //} else if ( this.format.match( /^PDF/ )) {
         var first_file_name = base_filename + '.pdf';
         if (qty > 1)
-          first_file_name = base_filename + '_1.pdf';
+          first_file_name = base_filename + qty_delim+'1.pdf';
         var destFile = new File(first_file_name);
         var overwrite = true;
         options.artboardRange = (i+1).toString();
@@ -295,7 +296,7 @@ var nyt_png_exporter = {
         if ( overwrite ){
           docRef.saveAs( destFile, options );
           for(var x=2; x<=qty; x++)
-            destFile.copy(base_filename + '_' + x +'.pdf')
+            destFile.copy(base_filename + qty_delim + x +'.pdf')
         }       
         // export layers as individual files
       }
