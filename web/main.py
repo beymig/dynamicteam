@@ -133,7 +133,7 @@ def blank_view():
 @app.route('/sheetlist', methods=['GET'])
 def show_sheet_tasks():
   tasks = Task.query.order_by(Task.log).filter(Task.fabric.startswith("SHEET"))
-  return render_template('list_view.html', title="Sheets List", items=["%s %s"%(t.log, t.fabric) for t in tasks], printbtn=False)
+  return render_template('list_view.html', title="Sheets List", items=["%s %s"%(t.folderid, t.modify_at) for t in tasks], printbtn=True)
 
 @app.route('/')
 @app.route('/printroom', methods=['GET'])
