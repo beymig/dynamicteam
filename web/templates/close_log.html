@@ -1,0 +1,40 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="">
+  <meta name="author" content="zhenzhen.jiang@gmail.com">
+  <style>
+  /* Move down content because we have a fixed navbar that is 50px tall */
+  body {
+    padding-top: 50px;
+  }
+
+  div.fileid-list{
+    margin-left: -1px;
+    margin-top: -1px;
+    border:black solid 1px;
+  }
+  </style>
+
+  <title>CloseLog - DynamicTeam</title>
+  <!-- Bootstrap core CSS -->
+  <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/bootstrap-theme.min.css">
+  <!-- Custom styles for this template -->
+  <link ref=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+  <script src="/static/js/jquery.min.js"></script>
+</head>
+<body>
+  <div class="container theme-showcase" role="main">
+    <h2>{{ title }}</h2>
+      <form class="navbar-form navbar-left" role="close" method="post">
+        <div class="form-group">
+          <input type="text" name="log" class="form-control" placeholder="Log#">
+        </div>
+        <button type="submit" class="btn btn-default">Close It!</button>
+      </form>
+  </div>
+</body>
+</html>
