@@ -2,6 +2,8 @@
 //Set up vairaibles
 #include "m2o_cfg.jsx"
 
+var INCH = (new UnitValue(1, "in")).as ('px');
+
 Array.prototype.map = function(f){
   var arry = [];
   for ( var i=0; i<this.length; i++){
@@ -132,13 +134,14 @@ function RectPiece(pageitem){
 
 var PrintBoard = function(artboard, roll){
   $.writeln(artboard.artboardRect);
+  var margin = roll?0:INCH;
   this.roll = roll;
-  this.width = artboard.artboardRect[2];
+  this.width = artboard.artboardRect[2]-margin;
   this.height = artboard.artboardRect[3];
   this.lowest = 0;
   this.insert_points = [];
   
-  this.insert_points.push([DOT_SIZE, -DOT_SIZE-TITLE_SIZE]);
+  this.insert_points.push([DOT_SIZE+margin, -DOT_SIZE-TITLE_SIZE]);
   this.pieces = [];
   this.dots = [];
 
@@ -426,7 +429,7 @@ var Task = function(source){
       
       //
       var cutpiece = import_piece(app.activeDocument, cut_file_mid);
-      cutpiece.move_to([0,0]);
+      cutpiece.move_to([this.roll?0:INCH,0]);
       cutpiece.flip();
       cutpiece.pageitem().embed();
       
