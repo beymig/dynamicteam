@@ -189,7 +189,7 @@ $( document ).ready(function() {
         <span class="col-xs-2">{{ task.length }}</span>
           {% if task.printer %}
             {% if task.status=="dispatched" %}
-              <span class="col-xs-2">{{ task.printer }}</span>
+            <span class="col-xs-2">{{ task.modify_at }}{{ task.printer }}</span>
             {% else %}
               <span class="col-xs-2"><button type="button" class="btn btn-sm btn-warning dyt-task-assigned">To:{{ task.printer }}</button></span>
             {% endif %}

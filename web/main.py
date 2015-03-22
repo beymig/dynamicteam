@@ -92,8 +92,9 @@ def add_task():
 @app.route('/redo/report', methods=['POST'])
 def redo_report():
   log = request.form["log"]
+  depart = request.form["depart"]
   files = request.form["files"]
-  return render_template('redo_report.html', log=log, files=files.split(";"))
+  return render_template('redo_report.html', log=log, depart=depart, files=files.split(";"))
 
 @app.route('/redo', methods=['GET'])
 def redo_view():

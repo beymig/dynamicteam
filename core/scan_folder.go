@@ -520,14 +520,15 @@ func fileListService(cfg Configuration) {
 
 	http.HandleFunc("/newredo", func(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
+		depart := r.PostForm.Get("depart")
 		log := r.PostForm.Get("log")
 		files := r.PostForm.Get("files")
-		fmt.Println("log:", log)
+		fmt.Println("log:", log, depart)
 		//fmt.Printf("files:%#v", files)
 		// TODO: Remove path information from redo file. This part of job should be done by jsx
 		logPath := getPathByLog(searchFolders, log)
 		fname := strings.Replace(filepath.Base(logPath), log, log+"redo", 1)
-		redoFile, err := os.OpenFile(filepath.Join(cfg.RedoFolder, fname+time.Now().Format("_06Jan02-150405.redo")), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
+		redoFile, err := os.OpenFile(filepath.Join(cfg.RedoFolder, fname+"_"+depart+time.Now().Format("_06Jan02-150405.redo")), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
 		if err != nil {
 			fmt.Println(err)
 		}

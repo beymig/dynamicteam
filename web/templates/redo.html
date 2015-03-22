@@ -20,7 +20,13 @@ function importLog(log){
     });
 }
 
-function commitRedo(){
+function sewerCommitRedo(){
+  var sewNO = prompt("Please enter sew number", "");
+  if (sewNO != null) {
+    commitRedo("sew"+sewNO);
+  }
+}
+function commitRedo(depart){
   var elems = $("#selected-list li");
   var selectedFiles = $.map(elems, function(elem){
       var str = $(elem).text();
@@ -33,11 +39,13 @@ function commitRedo(){
       });
   $.post(dtConfig.redoHost+"/newredo",
   {
+    depart:depart,
     log:redoLog,
     files:selectedFiles.join(';')
   },
   function(data,status){
     $("#report_log").val(redoLog);
+    $("#report_depart").val(depart);
     $("#report_files").val(data);
     $("#redo_report_form").submit();
     //$.get("/redo/report", info, null, "json");
@@ -229,9 +237,21 @@ function submit(){
       <div class="col-xs-1">
         <button class="btn btn-xs btn-danger" type="button" onclick="removeAllSelected()"><span class="glyphicon glyphicon-minus" aria-hidden="true">RemoveAll</span></button>
       </div>
-      <div class="col-xs-1 col-xs-offset-2">
+      <!--div class="col-xs-1 col-xs-offset-2">
         <button class="btn btn-xs btn-info" type="button" onclick="commitRedo()"><span class="glyphicon glyphicon-arrow-up" aria-hidden="true">Commit</span></button>
-      </div>
+      </div-->
+      <div class="col-xs-1 col-xs-offset-2 btn-group dropup">
+        <button type="button" class="btn btn-xs btn-info dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+          <span class="glyphicon glyphicon-arrow-up" aria-hidden="true">Commit</span><span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu" role="menu">
+          <li><a href="#" onclick="sewerCommitRedo()">Sewing</a></li>
+          <li class="divider"></li>
+          <li><a href="#" onclick="commitRedo('Transfer')">Transfer</a></li>
+          <li><a href="#" onclick="commitRedo('Zund')">Zund</a></li>
+          <li><a href="#" onclick="commitRedo('Shipping')">Shipping</a></li>
+        </ul>
+      </div> 
       <div class="col-xs-12">
       </div>
       <div class="col-xs-6">
@@ -248,6 +268,7 @@ function submit(){
   </div>
 </div>
 <form id="redo_report_form" action="/redo/report" method="post">
+  <input id="report_depart" name="depart" type="hidden" value="default">
   <input id="report_log" name="log" type="hidden" value="default">
   <input id="report_files" name="files" type="hidden" value="default">
 </form>
