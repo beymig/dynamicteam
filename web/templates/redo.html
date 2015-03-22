@@ -109,17 +109,17 @@ function updateSelectPanel(fileList){
   $("#candidate-list").html(innerHTML);
 
   // refresh filter
-  updateFilter("#filter-fabric", fabric);
+  updateFilter("#filter-fabric", fabric, true);
   updateFilter("#filter-size", size);
   updateFilter("#filter-part", part);
   updateFilter("#filter-number", num);
 
 }
 
-function updateFilter(ctrl, filters){
+function updateFilter(ctrl, filters, active=false){
   var innerHTML = "";
   for (var i=0; i<filters.length; i++){
-    innerHTML += '<button class="btn btn-success" type="button">'+filters[i]+'</button>';
+    innerHTML += '<button class="btn btn-' + (active?'success':'default') + '" type="button">'+filters[i]+'</button>';
   }
   $(ctrl).html(innerHTML);
 
@@ -132,6 +132,7 @@ function updateFilter(ctrl, filters){
     }
     filtePieces();
   });
+  filtePieces();
 }
 
 function selectPiece(pieceID){
