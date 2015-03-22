@@ -45,16 +45,22 @@ function reprint_sheets(taskid, printer){
 }
 
 function sum_units_up(){
-  var totalUnits = 0;
+  var totalUnits = [0, 0];
   var counted = [];
   var tasks=$("div.dyt-task-item");
   $.each(tasks, function(idx, value){
       var fields = $(value).children("span");
       var log = $(fields[0]).text();
+      var fabric = $(fields[1]).text();
       if (!~counted.indexOf(log)){
         var units = $(fields[3]).text();
         if (log.indexOf('redo')==-1 && units && !isNaN(units)){
-          totalUnits += parseInt(units);
+          if (fabric.indexOf("SHEET")==0){
+            totalUnits[0] += parseInt(uints);
+          }
+          else{
+            totalUnits[1] += parseInt(units);
+          }
         }
         counted.push(log);
       }
@@ -63,7 +69,10 @@ function sum_units_up(){
 }
 
 $( document ).ready(function() {
-    $('#dyt-total-units').text("Total Units: "+ sum_units_up());
+    //$('#dyt-total-units').text("Total Units: "+ sum_units_up());
+    var unit_count = sum_units_up();
+    $('#dyt-total-sheet-units').text("Sheet Units: "+ unit_count[0]);
+    $('#dyt-total-roll-units').text("Roll Units: "+ unit_count[1]);
     $('#tasks .dyt-task-assigned').attr('disabled', 'disabled');
     $('#tasks .dyt-task-new').attr('disabled', 'disabled');
     $('#tasks .dyt-sheet-reprint').attr('disabled', 'disabled');
@@ -238,7 +247,8 @@ $( document ).ready(function() {
       {% endfor %}
       <li class='list-group-item panel panel-default'>
       <div class="row show-grid">
-        <span id="dyt-total-units" class="col-xs-4 col-xs-offset-8">Total Units: </span>
+        <span id="dyt-total-sheet-units" class="col-xs-3 col-xs-offset-6">Sheet Units: </span>
+        <span id="dyt-total-roll-units" class="col-xs-3">Roll Units: </span>
       </div>
       </li>
     </ul>
