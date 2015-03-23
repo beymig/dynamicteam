@@ -141,7 +141,7 @@ def show_roll_tasks():
   today = date.today()
   date_from = date.today()-timedelta(days=10)
   tasks = Task.query.order_by(Task.modify_at).filter(Task.modify_at>=date_from).filter(~Task.fabric.startswith("SHEET")).filter(~Task.log.endswith("redo"))
-  return render_template('list_view.html', title="Sheets List", items=["%s %s"%(t.folderid[:-6], t.modify_at) for t in tasks], width=4, printbtn=True)
+  return render_template('list_view.html', title="Rolls List", items=["%s %s"%(t.folderid[:-6], t.modify_at) for t in tasks], width=4, printbtn=True)
 
 @app.route('/closelog', methods=['GET','POST'])
 def close_log():
