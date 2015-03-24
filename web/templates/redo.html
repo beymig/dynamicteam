@@ -124,7 +124,7 @@ function updateSelectPanel(fileList){
 
 }
 
-function updateFilter(ctrl, filters, active=false){
+function updateFilter(ctrl, filters, active){
   var innerHTML = "";
   for (var i=0; i<filters.length; i++){
     innerHTML += '<button class="btn btn-' + (active?'success':'default') + '" type="button">'+filters[i]+'</button>';
