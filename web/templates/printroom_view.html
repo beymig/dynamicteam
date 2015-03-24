@@ -56,7 +56,7 @@ function sum_units_up(){
         var units = $(fields[3]).text();
         if (log.indexOf('redo')==-1 && units && !isNaN(units)){
           if (fabric.indexOf("SHEET")==0){
-            totalUnits[0] += parseInt(uints);
+            totalUnits[0] += parseInt(units);
           }
           else{
             totalUnits[1] += parseInt(units);
