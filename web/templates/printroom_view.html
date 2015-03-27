@@ -175,8 +175,8 @@ $( document ).ready(function() {
         <span class="col-xs-2">Fabric</span>
         <span class="col-xs-2">Ship Date</span>
         <span class="col-xs-2">Units</span>
-        <span class="col-xs-2">Length</span>
-        <span class="col-xs-2">Action</span>
+        <span class="col-xs-1">Length</span>
+        <span class="col-xs-3">Action</span>
       </div>
       </li>
       {% for task in tasks %}
@@ -186,21 +186,22 @@ $( document ).ready(function() {
         <span class="col-xs-2">{{ task.fabric }}</span>
         <span class="col-xs-2">{{ task.daystogo }}</span>
         <span class="col-xs-2">{{ task.units }}</span>
-        <span class="col-xs-2">{{ task.length }}</span>
+        <span class="col-xs-1">{{ task.length }}</span>
           {% if task.printer %}
             {% if task.status=="dispatched" %}
-            <span class="col-xs-2">{{ task.modify_at }}{{ task.printer }}</span>
+            <span class="col-xs-3">{{ task.modify_at.strftime('%m-%d') }} --&gt; {{ task.printer }}</span>
             {% else %}
-              <span class="col-xs-2"><button type="button" class="btn btn-sm btn-warning dyt-task-assigned">To:{{ task.printer }}</button></span>
+              <span class="col-xs-3"><button type="button" class="btn btn-sm btn-warning dyt-task-assigned">To:{{ task.printer }}</button></span>
             {% endif %}
           {% else %}
-          <span class="col-xs-2">
+          <span class="col-xs-3">
             <button type="button" class="btn btn-sm btn-success dyt-task-new" onclick="sendjob({{ task.id }}, selected_printer);">
               <span class="glyphicon glyphicon-print" aria-hidden="true"></span>
             </button>
             <button type="button" class="btn btn-xs btn-danger" onclick="deletejob({{ task.id }});" aria-label="delete">
               <span class="glyphicon glyphicon-minus" aria-hidden="true"></span>
             </button>
+            {{ task.originPrinter }}
           </span>
           {% endif %}
       </div>

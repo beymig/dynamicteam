@@ -51,6 +51,8 @@ class Task(db.Model):
     self.status = status
     self.folderid = folderid
 
+    self.originPrinter = ""
+
 
   def __repr__(self):
     return 'id:%d: %s|%s|%s|%d|%d|%s'%(self.id, self.log, self.fabric, self.daystogo, self.units, self.length, self.printer)
@@ -184,6 +186,10 @@ def show_tasks():
     if o:
       t.create_at = o.create_at
       t.daystogo = o.daytogo
+    if t.log[-4:] == "redo":
+      ot = Task.query.filter_by(log=t.log[:-4], fabric=t.fabric).first()
+      if ot:
+        t.originPrinter=ot.printer or ""
 
   return render_template('printroom_view.html', view=view_type, tasks=tasks, task_counts=task_counts)
 
