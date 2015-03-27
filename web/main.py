@@ -188,6 +188,8 @@ def show_tasks():
       t.daystogo = o.daytogo
     if t.log[-4:] == "redo":
       ot = Task.query.filter_by(log=t.log[:-4], fabric=t.fabric).first()
+      if not ot:
+        ot = Task.query.filter(Task.log==t.log[:-4], Task.fabric.startswith("SHEET")).first()
       if ot:
         t.originPrinter=ot.printer or ""
 
