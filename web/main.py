@@ -209,6 +209,20 @@ def sendjob():
 
   return redirect(url_for('show_tasks'))
 
+@app.route('/sendbatchjobs', methods=['POST'])
+def sendbatchjob():
+  taskids, printid = request.form['taskids'], request.form['printerid']
+  
+  print(taskids, printid)
+  for taskid in taskids.split(','):
+    t = Task.query.get(int(taskid))
+    t.printer = printid
+    t.modify_at = datetime.now()
+    t.status = "assigned"
+  db.session.commit()
+
+  return redirect(url_for('show_tasks'))
+
 @app.route('/deletejob', methods=['POST'])
 def deletejob():
   taskid = int(request.form['taskid'])
