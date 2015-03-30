@@ -15,7 +15,7 @@ function sendjob(taskid){
 }
 
 function sendBatchJobs(printer){
-  var checked = $("#tasks input:checked");
+  var checked = $("#tasks input.select-task:checked");
   var ids = [];
 
   for ( var i=0; i<checked.length; i++){
@@ -92,7 +92,7 @@ $( document ).ready(function() {
     $('#tasks .dyt-task-new').attr('disabled', 'disabled');
     $('#tasks .dyt-sheet-reprint').attr('disabled', 'disabled');
     $('#tasks input:checked').attr('checked', false);
-    $('#tasks input[type=checkbox]').removeAttr('disabled');
+    $('#tasks input.select-task[type=checkbox]').removeAttr('disabled');
 
     $('.navbar-nav li').removeClass('active');
     $('.navbar-nav #nav-printroom').addClass('active');
@@ -102,17 +102,17 @@ $( document ).ready(function() {
         btn.removeClass('btn-success').addClass('btn-default');
         $('#tasks .dyt-task-new').attr('disabled', 'disabled');
         $('#tasks .dyt-sheet-reprint').attr('disabled', 'disabled');
-        $('#tasks input[type=checkbox]').removeAttr('disabled');
-        selected_printer = None;
+        $('#tasks input.select-task[type=checkbox]').removeAttr('disabled');
+        selected_printer = null;
       }else {
-        if ($( "#tasks input:checked" ).length){
+        if ($( "#tasks input.select-task:checked" ).length){
           sendBatchJobs(btn.attr('id'));
         }else {
           $('#printers .btn-success').removeClass('btn-success').addClass('btn-default');
           btn.addClass('btn-success');
           $('#tasks .dyt-task-new').removeAttr('disabled');
           $('#tasks .dyt-sheet-reprint').removeAttr('disabled');
-          $('#tasks input[type=checkbox]').attr('disabled', 'disabled');
+          $('#tasks input.select-task[type=checkbox]').attr('disabled', 'disabled');
           selected_printer = btn.attr('id');//btn.id;
         }
       }
@@ -204,7 +204,7 @@ $( document ).ready(function() {
       {% for task in tasks %}
       <li id="list-task-{{ task.id }}" class='list-group-item panel panel-default'>
       <div class="row show-grid dyt-task-item" {% if view!="" %} data-toggle="collapse" data-parent="#tasks" href="#sheets-panel-{{ task.id }}" {% endif %}>
-        <span class="col-xs-2">{% if not task.printer %} <input type="checkbox" value="{{ task.id }}">{% endif %} {{ task.log }}</span>
+        <span class="col-xs-2">{% if not task.printer %} <input type="checkbox" class="select-task" value="{{ task.id }}">{% endif %} {{ task.log }}</span>
         <span class="col-xs-2">{{ task.fabric }}</span>
         <span class="col-xs-2">{{ task.daystogo }}</span>
         <span class="col-xs-2">{{ task.units }}</span>

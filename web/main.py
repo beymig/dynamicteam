@@ -211,6 +211,7 @@ def sendjob():
 
   return redirect(url_for('show_tasks'))
 
+#TODO Combine this with sendjob
 @app.route('/sendbatchjobs', methods=['POST'])
 def sendbatchjob():
   taskids, printid = request.form['taskids'], request.form['printerid']
