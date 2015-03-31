@@ -18,12 +18,16 @@ function sendBatchJobs(printer){
   var checked = $("#tasks input.select-task:checked");
   var ids = [];
 
+  if (checked.length==0)
+    return;
+
   for ( var i=0; i<checked.length; i++){
     ids.push(checked[i].value);
   }
+  var fabric = $($("li#list-task-"+ids[0]+">div>span")[1]).text();
   $.post("{{ url_for('sendbatchjob') }}", {
       taskids:ids.join(','),
-      printerid: printer
+      printerid: (fabric.substr(0,5)=="SHEET"?"NZ":"")+printer
     }, function(){
       window.location.href = "{{ url_for('show_tasks') }}";
     });
