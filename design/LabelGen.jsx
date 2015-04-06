@@ -94,6 +94,7 @@
   if ( infoFile.exists ) {
     infoFile.open("r");
     exportInfo = JSON.parse(infoFile.read());
+    infoFile.close();
   }
 
   var fabricCount = exportInfo.fabricInfo.length;

@@ -308,7 +308,7 @@ var Task = function(source){
       }
       //else{
         this.roll = true;
-        this.unit_count = attrs[1];
+        this.unit_count = 1;//attrs[1];
         var fabric_groups = files.map(function(f){
           var attr = f.displayName.split("_");
           if ( attr[0]=="" ){
