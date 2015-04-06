@@ -40,6 +40,7 @@ var nyt_png_exporter = {
   num_artboards_to_export: 0,
 
   exportInfo: {
+    fabricInfo:[],
     sizeInfo:{},
     blankInfo:{},
   },
@@ -94,7 +95,7 @@ var nyt_png_exporter = {
         this.nph = this.prefs_xml.nyt_num_placeholder;
         this.nreq = this.prefs_xml.nyt_num_reqired;
         this.prefix             = this.prefs_xml.nyt_size;
-        this.suffix             = "_" + docRef.name.split('_')[0];
+        this.suffix             = docRef.name.split('_')[0];
         this.base_path          = app.activeDocument.fullName.path; //this.prefs_xml.nyt_base_path;
 
         parse_success = true;
@@ -197,7 +198,7 @@ var nyt_png_exporter = {
     // OK button
     btnPnl.okBtn = btnPnl.add('button', undefined, 'Export', {name:'ok'});
     btnPnl.okBtn.onClick = function() { 
-      nyt_png_exporter.prefix       = app.activeDocument.activeDataSet.name.split("_")[0] + "_";
+      nyt_png_exporter.prefix       = app.activeDocument.activeDataSet.name.split("_")[0];
       //nyt_png_exporter.suffix       = suffixEt.text; 
       nyt_png_exporter.base_path    = dirEt.text;   
         
@@ -215,7 +216,7 @@ var nyt_png_exporter = {
         for( var i = 0; i < nums.length; i++)
         {
           nyt_png_exporter.replace_number(re, nums[i]);
-          nyt_png_exporter.run_export(qty, '_'+nums[i]);
+          nyt_png_exporter.run_export(qty, nums[i]);
           ph = nums[i];
           re = new RegExp('^'+ph+'$', 'g');
         }
@@ -247,7 +248,7 @@ var nyt_png_exporter = {
   run_export: function(qty, num) {
     var num_exported = 0;
     var options;
-    
+
     //} else if ( this.format == 'PDF' ) {
     options = new PDFSaveOptions();
     options.compatibility = PDFCompatibility.ACROBAT5;
@@ -257,16 +258,25 @@ var nyt_png_exporter = {
     var starting_artboard = 0;
     var num_artboards =  docRef.artboards.length;
     
+    var sizeInfo = this.exportInfo.sizeInfo;
+    if (this.prefix in sizeInfo)
+      sizeInfo[this.prefix] += qty;
+    else
+      sizeInfo[this.prefix] = qty;
+
     for (var i = starting_artboard; i < num_artboards; i++ ) {
       var artboardName = docRef.artboards[i].name;
       starting_artboard = docRef.artboards.setActiveArtboardIndex(i);
 
       // Process this artbarod if we're exporting only a single one (layers mode) or if it doesn't have generic name or minus
       if (!( artboardName.match(  /^artboard/i ) || artboardName.match( /^\-/ ) )) {
-        var fileid = this.prefix + artboardName + this.suffix + num;
+        var fileid = this.prefix +"_" + artboardName + this.suffix;
+        if (num)
+          fileid+= "_"+num;
 
-        if (~artboardName.indexOf(" blank")){
-          var blankid = this.prefix + artboardName.replace(" blank", "");
+        var bIndex = artboardName.indexOf(" blank");
+        if (bIndex != -1){
+          var blankid = [this.prefix, artboardName.substr(0, bIndex)].join("_");
           var blankInfo = this.exportInfo.blankInfo;
           if (blankid in blankInfo){
             blankInfo[blankid] += qty;
@@ -277,6 +287,15 @@ var nyt_png_exporter = {
           continue;
         }
       
+        var fabric = artboardName.split("_")[0];
+        if (fabric == "FLAT"){
+          fabric = artboardName.split("_")[1];
+        }
+
+        var fabricInfo = this.exportInfo.fabricInfo;
+        if (!~fabricInfo.indexOf(fabric))
+          fabricInfo.push(fabric);
+
         // if exporting artboard by artboard, export layers as is
         //if ( this.export_code == 'artboards' ) {
         var base_filename = this.base_path + "/" + fileid;
