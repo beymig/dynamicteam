@@ -68,7 +68,15 @@
     "AL":"DYNAMIC SPOT ROYAL",
     "AXL":"DYNAMIC ATHLETIC PURPLE",
     "AXXL":"DYNAMIC ATHLETIC CARDINAL",
-    "AXXL":"DYNAMIC SPOT VEGAS"
+    "AXXXL":"DYNAMIC SPOT VEGAS",
+    "AXXXXL":"DYNAMIC SPOT VEGAS",
+    "AST":"DYNAMIC SPOT ORANGE",
+    "AMT":"DYNAMIC SPOT KELLY",
+    "ALT":"DYNAMIC SPOT ROYAL",
+    "AXLT":"DYNAMIC ATHLETIC PURPLE",
+    "AXXLT":"DYNAMIC ATHLETIC CARDINAL",
+    "AXXXLT":"DYNAMIC SPOT VEGAS",
+    "AXXXXLT":"DYNAMIC SPOT VEGAS"
   };
 
 
@@ -81,7 +89,7 @@
   if (!origin)
     return;
 
-  var labelTemplate = new LabelTemplate("d:\\workspace\\dynamicteam\\src\\design\\LABEL_TEMPLATE.ai");
+  var labelTemplate = new LabelTemplate(LABEL_TEMPLATE_FILE);
   var infoFile = new File(origin+"/exportinfo.json");
   if ( infoFile.exists ) {
     infoFile.open("r");

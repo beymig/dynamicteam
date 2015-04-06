@@ -9,7 +9,7 @@
 // Copyright 2011 Matthew Ericson
 // Comments or suggestions to mericson@ericson.net
 
-#include "json2.js"
+#include "util.jsx"
 
 var docRef = app.activeDocument;
 

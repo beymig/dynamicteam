@@ -1,4 +1,70 @@
 ﻿#include "m2o_cfg.jsx"
+#include "json2.js"
+
+Array.prototype.map = function(f){
+  var arry = [];
+  for ( var i=0; i<this.length; i++){
+    arry.push(f(this[i]));
+  }
+  return arry;
+}
+
+Array.prototype.filter = function(f){
+  var arry = [];
+  for ( var i=0; i<this.length; i++){
+    if(f(this[i])) arry.push(this[i]);
+  }
+  return arry;
+}
+
+Array.prototype.reduce = function(f, initValue){
+  var result = initValue;
+  for ( var i=0; i<this.length; i++){
+    result = f(this[i], result);
+  }
+  return result;
+}
+
+Array.prototype.indexOf = function(v){
+  for ( var i=0; i<this.length; i++){
+    if (this[i]==v){
+      return i;
+    }
+  }
+  return -1;
+}
+
+Array.prototype.locate = function(comp, f){
+  for ( var i = 0; i<this.length; i++){
+    if (f(comp, this[i]))
+      return i;
+  }
+  return -1;
+}
+
+Array.prototype.groupBy = function(keygen){
+  var result = {}
+  for ( var i = 0; i<this.length; i++){
+    var key = keygen(this[i]);
+    if (key in result){
+      result[key].push(this[i]);
+    }else{
+      result[key] = [this[i]];
+    }
+  }
+  return result;
+}
+
+Object.prototype.keys = function(){
+  var keys = [];
+  for ( key in this){
+    if (key != "keys"){
+      keys[keys.length] = key;
+    }
+  }
+  return keys;
+}
+
 
 var Util = {
 }
