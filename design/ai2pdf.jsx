@@ -15,7 +15,7 @@
       var artboards = doc.artboards;
       for (var i = 0; i < artboards.length; i++ ) {
         var artboardName = artboards[i].name;
-        if (artboardName=="_")
+        if (~artboardName.indexOf(" blank")
           continue;
 
         // Process this artbarod if we're exporting only a single one (layers mode) or if it doesn't have generic name or minus
@@ -107,7 +107,7 @@
           var blankid = artboardName.substr(0, bIndex);
           blankArtboards[blankArtboards.length]=blankid;
           //artboards[i].remove();
-          artboards[i].name = "_";
+          //artboards[i].name = "_";
           continue;
         }
         artboards[i].name = artboardName.replace(/^FLAT_/g, "FLAT").replace(/^_|_+$/g, "");
@@ -125,7 +125,7 @@
         // update count
         for (var i=0; i<expreqs.length; i++){
           var expreq = expreqs[i];
-          var size=expreq[0], copyCount=expreq[1], numbers=expreq[2];
+          var size=expreq[0].split("_")[0], copyCount=expreq[1], numbers=expreq[2];
 
           var count = copyCount*(numbers&&numbers.length||1);
           unitsCount += count;
@@ -136,14 +136,15 @@
         }
 
         var blankInfo = exportInfo.blankInfo;
-        for (var i=0; i<blankArtboards.length; i++){
-          var sizes = sizeInfo.keys();
-          for (var j=0; j<sizes.length; j++){
-            var blankid=[sizes[j], blankArtboards[i]].join("_");
-            blankInfo[blankid] = sizeInfo[sizes[j]];
+        for (var size in sizeInfo){
+          if (size == "keys")
+            continue;
+          size = size.split("_")[0];
+          for (var i=0; i<blankArtboards.length; i++){
+            var blankid=[size, blankArtboards[i]].join("_");
+            blankInfo[blankid] = sizeInfo[size];
           }
         }
-      
 
         // create dest folder
         var outDir = new Folder([setting.outDir, [setting.log, setting.sheetType, unitsCount, fabricInfo.length+"FABRICS"].join("_")].join("/"));
@@ -160,7 +161,7 @@
           // switch to size adn fit artboard
           Util.switchDataset(doc, size);
           absAdjuster.run();
-          rtValues.size = size;
+          rtValues.size = size.split("_")[0];
 
           //export
           exportPiecesBySize(copyCount, setting.ph, numbers);
