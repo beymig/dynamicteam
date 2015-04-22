@@ -4,7 +4,6 @@
 (function (){
   function Exporter(doc, setting){
     //this.setting = setting;
-    this.log = setting.log;
     var rtValues = {};
     var exportInfo = {
       fabricInfo:[],
@@ -39,6 +38,22 @@
       }
     }
 
+    function replaceTextFrames(search, replace_text){
+      var text_frames = doc.textFrames;  
+      if (text_frames.length > 0)  
+      {  
+        for (var i = 0 ; i < text_frames.length; i++)  
+        {  
+          var this_text_frame = text_frames[i];  
+          var new_string = this_text_frame.contents.replace(search, replace_text);  
+          if (new_string != this_text_frame.contents)  
+          {  
+            this_text_frame.contents = new_string;  
+          }  
+        }  
+      }  
+    }
+
     function getPlaceHolders(phText){
       var phs = [];
       var text_frames = doc.textFrames;  
@@ -51,6 +66,7 @@
     }
 
     function exportPiecesBySize(count, ph, numbers){
+      replaceTextFrames(/^8888$/g, setting.log);
       if (ph && numbers.length){
         var phs = getPlaceHolders(ph);
         for( var i = 0; i < numbers.length; i++)
@@ -68,19 +84,28 @@
         exportPieces(count);
       }
     }
+    function SaveExportInfo(outDir, exportInfo){
+      var infoFile = new File(outDir+"/exportinfo.json");
+      infoFile.open("w");
+      infoFile.write(JSON.stringify(exportInfo, null, 2));
+      infoFile.close();
+    }
 
     this.run = function(){
       var absAdjuster = new ArtboardsAdjuster(doc);
-      rtValues.log = this.log;
+      rtValues.log = setting.log;
 
       // change artboard name and get fabric infomation
       var artboards = doc.artboards;
       var fabricInfo = exportInfo.fabricInfo;
+      var blankArtboards = [];
       for (var i = 0; i < artboards.length; i++ ) {
         var artboardName = artboards[i].name;
-        if (artboardName.indexOf(" blank") != -1){
+        var bIndex = artboardName.indexOf(" blank");
+        if (bIndex != -1){
           //record blank infomation
-          RecordBlankInfomation();
+          var blankid = artboardName.substr(0, bIndex);
+          blankArtboards[blankArtboards.length]=blankid;
           //artboards[i].remove();
           artboards[i].name = "_";
           continue;
@@ -91,7 +116,7 @@
         if (!~fabricInfo.indexOf(fabric))
           fabricInfo.push(fabric);
       }
-      
+
       with(setting){
         var expreqs = setting.sizeList;
         var unitsCount = 0;
@@ -109,8 +134,19 @@
           else
             sizeInfo[size] = count;
         }
+
+        var blankInfo = exportInfo.blankInfo;
+        for (var i=0; i<blankArtboards.length; i++){
+          var sizes = sizeInfo.keys();
+          for (var j=0; j<sizes.length; j++){
+            var blankid=[sizes[j], blankArtboards[i]].join("_");
+            blankInfo[blankid] = sizeInfo[sizes[j]];
+          }
+        }
+      
+
         // create dest folder
-        var outDir = new Folder([setting.outDir, [setting.log, unitsCount, "ERGO_ANY", fabricInfo.length+"FABRICS"].join("_")].join("/"));
+        var outDir = new Folder([setting.outDir, [setting.log, setting.sheetType, unitsCount, fabricInfo.length+"FABRICS"].join("_")].join("/"));
         if ( ! outDir.exists ){
           outDir.create();
         }
@@ -130,6 +166,7 @@
           exportPiecesBySize(copyCount, setting.ph, numbers);
         }
         // export blank info
+        SaveExportInfo(rtValues.outDir, exportInfo);
       }
     };
   }
@@ -180,20 +217,7 @@
           bCancel: Button{ text:'Cancel'},\
         },\
       }";
-  /*
-          gType: Group{orientation:'row', alignChildren:'left',\
-            s: StaticText{ text:'Size Type:'},\
-            rbY: RadioButton{ text:'Y' },\
-            rbNormal: RadioButton{ text:'Normal', value:true },\
-            rbT: RadioButton{ text:'T' },\
-          },\
-          properties:{items:['AXS', 'AS', 'AM', 'AL', 'AXL', 'AXXL', 'AXXXL', 'AXXXXL']}},\
-              columnTitles:['Size','Count','#s'],\
-              items:[\
-                'Size:AXL;  Count:1; Numbers:12,13,14,35,46,37,28',\
-                'Size:AXXL; Count:3; Numbers:2,3,4,5,6,7,8']\
-            }},\
-                */
+
     function buildSizeList(expDlg){
       var sizelist = [];
       with(expDlg.sizeSetting.gSizeList){
@@ -229,8 +253,17 @@
           var setting = {};
           setting.log = doc.name.split('_')[0];
 
-          setting.outDir = expDlg.globalSetting.dir.e.text
-          setting.ph = expDlg.globalSetting.numberPH.e.text;
+          with(expDlg.globalSetting){
+            setting.outDir = dir.e.text
+            setting.ph = numberPH.e.text;
+            if (sheetType.rSheetS.value){
+              setting.sheetType = "S";
+            }else if (sheetType.rSheetL.value){
+              setting.sheetType = "L";
+            }else{
+              setting.sheetType = "R";
+            }
+          }
 
           setting.sizeList = buildSizeList(expDlg);
           var exporter = new Exporter(doc, setting);

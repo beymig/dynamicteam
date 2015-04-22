@@ -1,5 +1,4 @@
-﻿
-function ArtboardsAdjuster(doc){
+﻿function ArtboardsAdjuster(doc){
   function getOutline(actionName){
     var items = app.activeDocument.selection;
     for(var i = 0;i < items.length;i++){
