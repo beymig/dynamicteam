@@ -41,7 +41,7 @@ type RollInfo struct {
 }
 
 type ExportInfo struct {
-	SizeInfo  map[string]string
+	SizeInfo  map[string]int
 	BlankInfo map[string]int
 }
 
