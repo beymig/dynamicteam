@@ -1,5 +1,6 @@
 #include "util.jsx"
 #include "abs_adjuster.jsx"
+#include "label_gen.jsx"
 
 (function (){
   function Exporter(doc, setting){
@@ -15,7 +16,7 @@
       var artboards = doc.artboards;
       for (var i = 0; i < artboards.length; i++ ) {
         var artboardName = artboards[i].name;
-        if (~artboardName.indexOf(" blank")
+        if (~artboardName.indexOf(" blank"))
           continue;
 
         // Process this artbarod if we're exporting only a single one (layers mode) or if it doesn't have generic name or minus
@@ -269,6 +270,9 @@
           setting.sizeList = buildSizeList(expDlg);
           var exporter = new Exporter(doc, setting);
           exporter.run();
+          if (expDlg.globalSetting.sheetType.rRoll.value){
+            GenerateLabels(setting.log);
+          }
           this.window.close(0);
         };
         bCancel.onClick = function(){this.window.close(0);};
