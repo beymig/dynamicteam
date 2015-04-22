@@ -110,6 +110,7 @@ var nyt_png_exporter = {
     var infoFile = new File(this.base_path+"/exportinfo.json");
     infoFile.open("w");
     infoFile.write(JSON.stringify(this.exportInfo, null, 2));
+    infoFile.close();
   },
 
   load_generate_info: function(){

@@ -108,7 +108,7 @@ Util.getOriginalPdfFolder = function(log){
 
 Util.exportArtboard = function(fPath, doc, index){
   var options = new PDFSaveOptions();
-  options.compatibility = PDFCompatibility.ACROBAT5;
+  options.compatibility = PDFCompatibility.ACROBAT8;
   options.generateThumbnails = true;
   options.preserveEditability = false;
   options.artboardRange = (index+1).toString();
@@ -124,3 +124,10 @@ Util.exportArtboard = function(fPath, doc, index){
     return destFile;
   }       
 };
+
+Util.switchDataset = function(doc, datasetName){
+  var dataset = doc.dataSets.getByName(datasetName);
+  dataset.display();
+  redraw();
+};
+
