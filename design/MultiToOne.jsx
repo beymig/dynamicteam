@@ -257,13 +257,19 @@ var Task = function(source){
         this.roll = true;
         // if roll
         // split folder by fabric; split sheet by body size; sort by piece size
-        this.unit_count = attrs[1];
+        // TODO for compatibility, remove later
+        if(attrs[1]=="R")
+          this.unit_count = attrs[2];
+        else
+          this.unit_count = attrs[1];
+
         var fabric_groups = files.map(function(f){
           var attr = f.displayName.split("_");
           if ( attr[0]=="" ){
             attr = attr.slice(1);
           }
           var size = attr[0];
+          // TODO for compatibility, remove later
           var fabric = attr[1]=="FLAT"?attr[2]:attr[1];
           fabric = fabric.replace("FLAT", "").replace(/^\s+|\s+$/g, '');
           return [size, fabric, f]; //[size, number]
@@ -299,7 +305,7 @@ var Task = function(source){
 
       var attrs = folderName.split("_");
       this.log = attrs[0];
-      if ( attrs[1]=="S" || attrs[1]=="L"){
+      if ( attrs[1]=="S" || attrs[1]=="L" || attrs[1]=="R"){
         attrs.splice(1,1);
         /*this.roll = true;
         this.unit_count = attrs[2];
