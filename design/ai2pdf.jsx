@@ -72,11 +72,18 @@
         var phs = getPlaceHolders(ph);
         for( var i = 0; i < numbers.length; i++)
         {
+          doc.selection = null;
           // change number
           for (var j = 0; j<phs.length; j++){
             phs[j].contents = numbers[i];
           }
+
+          app.doScript ("outline text", "Default Actions");
           exportPieces(count, numbers[i]);
+          app.undo();
+          app.undo();
+
+          phs = getPlaceHolders(numbers[i]);
         }
         for (var j = 0; j<phs.length; j++){
           phs[j].contents = ph;
