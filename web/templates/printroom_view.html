@@ -90,6 +90,23 @@ function sum_units_up(){
   return totalUnits;
 }
 
+function ApplyFilter(e){
+  var filter = e.target.value;
+  var tasks=$("li.list-group-item");
+  $.each(tasks, function(idx, value){
+    if (idx==0){
+      return;
+    }
+    var fields = $(value).find("div>span");
+    var log = $(fields[0]).text();
+    if (~log.indexOf(filter)){
+      $(tasks[idx]).show()
+    }else{
+      $(tasks[idx]).hide();
+    }
+  });
+}
+
 $( document ).ready(function() {
     //$('#dyt-total-units').text("Total Units: "+ sum_units_up());
     var unit_count = sum_units_up();
@@ -189,6 +206,9 @@ $( document ).ready(function() {
 
   <div class="row placeholders">
     <p class="page-header"></p>
+    <div class="row">
+      <input type="text" class="col-xs-2" id="log-number" oninput="ApplyFilter(event);" placeholder="Input To Filter">
+    </div>
     <ul class="nav nav-pills" role="tablist">
       {% if view[:3]=='log' %}<li role="presentation"  class="active"><a href="{{ url_for('show_tasks') }}">{{ view }}</a></li> {% endif %}
       <li role="presentation" {% if view=='' %} class="active" {% endif %}><a href="{{ url_for('show_tasks') }}">Waiting<span class="badge">{{ task_counts[0] }}</span></a></li>
