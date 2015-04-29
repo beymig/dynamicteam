@@ -288,7 +288,7 @@ func dispatchPrintJob(printer string, cfg Configuration, printers map[string]str
 			continue
 		}
 		// query from db
-		rows, err := con.Query("SELECT id, log, fabric, daystogo, units, length, folderid, printer from task WHERE status='assigned' and printer=?", printer)
+		rows, err := con.Query("SELECT id, log, fabric, daystogo, units, length, folderid, printer, gradient from task WHERE status='assigned' and printer=?", printer)
 		if err != nil {
 			fmt.Println("Dispatch error:", err)
 			continue
@@ -296,10 +296,10 @@ func dispatchPrintJob(printer string, cfg Configuration, printers map[string]str
 
 	NextRow:
 		for rows.Next() {
-			var id, units, length int
+			var id, units, length, gradient int
 			var folderid, printer, log, fabric string
 			var daystogo time.Time
-			if err = rows.Scan(&id, &log, &fabric, &daystogo, &units, &length, &folderid, &printer); err != nil || printers[printer] == "" {
+			if err = rows.Scan(&id, &log, &fabric, &daystogo, &units, &length, &folderid, &printer, &gradient); err != nil || printers[printer] == "" {
 				fmt.Println("Dispatch get value err:", err, printer, "not exist")
 				continue
 			}
@@ -376,35 +376,37 @@ func dispatchPrintJob(printer string, cfg Configuration, printers map[string]str
 				pdfFiles = append([]os.FileInfo{firstSheetFile}, pdfFiles...)
 			}
 
-			for index, pdfFile := range pdfFiles {
-				fname := pdfFile.Name()
+			if gradient != 1 { // don't send gradient one
+				for index, pdfFile := range pdfFiles {
+					fname := pdfFile.Name()
 
-				if !strings.HasSuffix(fname, ".pdf") {
-					continue
-				}
+					if !strings.HasSuffix(fname, ".pdf") {
+						continue
+					}
 
-				fmt.Println(fname)
-				srcpath := path.Join(taskFolder, fname)
-				dstpath := path.Join(printerFolder, fname)
-				if err = copyFile(dstpath, srcpath); err != nil {
-					fmt.Println("Dispatch job failed. ", err, "copy file failed")
-					continue NextRow
-				}
-				_, err = con.Exec("insert into sheet (task_id, src, status, printer) values(?, ?, ?,?)", id, fname, "dispatched", printer)
-				if err != nil {
-					fmt.Println(err)
-					cerr <- err
-					continue NextRow
-				}
+					fmt.Println(fname)
+					srcpath := path.Join(taskFolder, fname)
+					dstpath := path.Join(printerFolder, fname)
+					if err = copyFile(dstpath, srcpath); err != nil {
+						fmt.Println("Dispatch job failed. ", err, "copy file failed")
+						continue NextRow
+					}
+					_, err = con.Exec("insert into sheet (task_id, src, status, printer) values(?, ?, ?,?)", id, fname, "dispatched", printer)
+					if err != nil {
+						fmt.Println(err)
+						cerr <- err
+						continue NextRow
+					}
 
-				// wait for empty folder
-				if index == 0 && !sheetJob {
-					for {
-						if files, err := filepath.Glob(path.Join(printerFolder, "*.pdf")); err != nil || len(files) > 0 {
-							time.Sleep(1 * time.Second)
-							continue
-						} else {
-							break
+					// wait for empty folder
+					if index == 0 && !sheetJob {
+						for {
+							if files, err := filepath.Glob(path.Join(printerFolder, "*.pdf")); err != nil || len(files) > 0 {
+								time.Sleep(1 * time.Second)
+								continue
+							} else {
+								break
+							}
 						}
 					}
 				}
