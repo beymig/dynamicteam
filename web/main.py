@@ -40,6 +40,7 @@ class Task(db.Model):
   folderid = db.Column(db.String(50))
   create_at = db.Column(db.DateTime, default=db.func.now())
   modify_at = db.Column(db.DateTime)
+  gradient = db.Column(db.Integer)
 
   def __init__(self, log, fabric=None, daystogo=None, units=None, length=None, printer=None, status="new", folderid=None):
     self.log = log
@@ -154,6 +155,17 @@ def close_log():
     db.session.commit()
 
   return render_template('close_log.html')
+
+@app.route('/gradient', methods=['GET','POST'])
+def gradient():
+  if request.method == 'POST':
+    taskid, gradient = int(request.form['taskid']), int(request.form['gradient'])
+    t = Task.query.get(taskid)
+    t.gradient = gradient
+    db.session.commit()
+
+  tasks = Task.query.order_by(Task.daystogo).filter_by(status=None).all()
+  return render_template('gradient.html', tasks=tasks)
 
 @app.route('/')
 @app.route('/printroom', methods=['GET'])

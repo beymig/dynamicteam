@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+{% block body %}
+
+<script>
+function ChangeGradient(e){
+  var btn = e.target;
+  var taskid = btn.id.split("-")[1];
+  var gradient= $(btn).hasClass("btn-success")?0:1;
+  $.post("{{ url_for('gradient') }}", 
+    {
+      taskid:taskid,
+      gradient: gradient,
+      }, function(){
+        window.location.href = "{{ url_for('gradient') }}";
+      });
+}
+</script>
+
+{% for t in tasks %}
+<button type="button" id="task-{{ t.id }}" class="btn {% if t.gradient==1 %}btn-success{% else %}btn-default{% endif %}" onclick="ChangeGradient(event)">{{ t.log }} {{ t.fabric }}</button>
+{% endfor %}
+
+{% endblock %}
