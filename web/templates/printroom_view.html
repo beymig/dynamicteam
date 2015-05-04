@@ -185,9 +185,10 @@ $( document ).ready(function() {
       P-E
       <div role="toolbar" class="btn-toolbar">
         <div class="btn-group">
-          {% for printer in range(4,19) %}
+          {% for printer in (6,8,10,11,14) %}
           <button class="btn btn-default" id="P-E{{ "%02d"|format(printer) }}" type="button">{{ "%02d"|format(printer) }}</button>
           {% endfor %}
+          <span class="bg-danger">Only 6 can be used for rolls</span>
         </div>
       </div>
     </div>
@@ -196,9 +197,10 @@ $( document ).ready(function() {
       P-EN
       <div role="toolbar" class="btn-toolbar">
         <div class="btn-group">
-          {% for printer in range(4,19) %}
+          {% for printer in (7,8,10,11,14) %}
           <button class="btn btn-default" id="P-EN{{ "%02d"|format(printer) }}" type="button">{{ "%02d"|format(printer) }}</button>
           {% endfor %}
+          <span class="bg-danger">Do not use 7 for sheets</span>
         </div>
       </div>
     </div>
