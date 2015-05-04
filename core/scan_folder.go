@@ -133,7 +133,7 @@ func scanForNewTask(cfg Configuration, cerr chan error) {
 			length, _ := strconv.Atoi(strings.TrimSuffix(attrs[3], "in"))
 
 			// insert data into database
-			_, err = con.Exec("insert into task (log, fabric, units, daystogo, length, folderid) values(?, ?, ?, ?, ?, ?)", log, fabric, units, time.Now().AddDate(0, 0, 10), length, folderid)
+			_, err = con.Exec("insert into task (log, fabric, units, daystogo, length, folderid) values(?, ?, ?, ?, ?, ?)", log, fabric, units, time.Now(), length, folderid)
 			if err != nil {
 				cerr <- err
 				continue
@@ -453,7 +453,7 @@ func generateRollReport(rollInfo RollInfo, fpath string, prompt string) (err err
 	pdf.Cell(5, 0, fmt.Sprintf("FABRIC: %s", rollInfo.Fabric))
 	pdf.Cell(3, 0, fmt.Sprintf("Uints: %d", rollInfo.Units))
 	pdf.Cell(6, 0, fmt.Sprintf("ROLL LENGTH: %d.IN", rollInfo.Height))
-	pdf.Cell(6, 0, fmt.Sprintf("DaysToGo: %s", rollInfo.DaysToGo.Format("02/Jan/2006")))
+	pdf.Cell(6, 0, fmt.Sprintf("Submmit Time: %s", rollInfo.DaysToGo.Format("02/Jan/2006")))
 	pdf.SetFont("Arial", "B", 126)
 	pdf.SetXY(8, 3)
 	pdf.Cell(30, 0, prompt) //"CUT PAPER HERE!")
