@@ -38,7 +38,7 @@ class Task(db.Model):
   printer = db.Column(db.String(20))
   status = db.Column(db.String(20))
   folderid = db.Column(db.String(50))
-  create_at = db.Column(db.DateTime, default=db.func.now())
+  create_at = db.Column(db.DateTime)
   modify_at = db.Column(db.DateTime)
   gradient = db.Column(db.Integer)
 
@@ -164,7 +164,7 @@ def gradient():
     t.gradient = gradient
     db.session.commit()
 
-  tasks = Task.query.order_by(Task.daystogo).filter_by(status=None).all()
+  tasks = Task.query.order_by(Task.create_at).filter_by(status=None).all()
   return render_template('gradient.html', tasks=tasks)
 
 @app.route('/')
@@ -172,8 +172,8 @@ def gradient():
 def show_tasks():
   view_type = request.args.get("view", "")
   today = date.today()
-  waiting = Task.query.order_by(Task.daystogo).filter(Task.status != "dispatched").count()
-  waiting += Task.query.order_by(Task.daystogo).filter_by(status=None).count()
+  waiting = Task.query.order_by(Task.create_at).filter(Task.status != "dispatched").count()
+  waiting += Task.query.order_by(Task.create_at).filter_by(status=None).count()
   task_counts = [waiting]
   for i in range(6):
     date_from = date.today()-timedelta(days=i)
@@ -183,8 +183,8 @@ def show_tasks():
 
   #tasks = Task.query.order_by(Task.daystogo).filter(Task.status.in_(("assigned", None)))
   if view_type=="":
-    tasks = Task.query.order_by(Task.daystogo).filter(Task.status.in_(("assigned", "dispatching"))).all()
-    tasks.extend(Task.query.order_by(Task.daystogo).filter_by(status=None).all())
+    tasks = Task.query.order_by(Task.create_at).filter(Task.status.in_(("assigned", "dispatching"))).all()
+    tasks.extend(Task.query.order_by(Task.create_at).filter_by(status=None).all())
   elif view_type[:3]=="log":
     tasks = Task.query.filter_by(log=view_type[4:]).all()
   else:

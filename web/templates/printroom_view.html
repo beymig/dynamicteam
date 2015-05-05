@@ -225,7 +225,7 @@ $( document ).ready(function() {
       <div class="row show-grid">
         <span class="col-xs-2">Log</span>
         <span class="col-xs-2">Fabric</span>
-        <span class="col-xs-2">Submmit Time</span>
+        <span class="col-xs-2">Submit Time</span>
         <span class="col-xs-2">Units</span>
         <span class="col-xs-1">Length</span>
         <span class="col-xs-3">Action</span>
@@ -236,7 +236,7 @@ $( document ).ready(function() {
       <div class="row show-grid dyt-task-item {% if task.gradient %}bg-success{% endif %}" {% if view!="" %} data-toggle="collapse" data-parent="#tasks" href="#sheets-panel-{{ task.id }}" {% endif %}>
         <span class="col-xs-2">{% if not task.printer %} <input type="checkbox" class="select-task" value="{{ task.id }}">{% endif %} {{ task.log }}</span>
         <span class="col-xs-2">{{ task.fabric }}</span>
-        <span class="col-xs-2">{{ task.daystogo }}</span>
+        <span class="col-xs-2">{{ task.create_at.strftime('%m-%d %H:%M') }}</span>
         <span class="col-xs-2">{{ task.units }}</span>
         <span class="col-xs-1">{{ task.length }}</span>
           {% if task.printer %}
