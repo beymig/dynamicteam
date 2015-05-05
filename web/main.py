@@ -96,8 +96,16 @@ def add_task():
 def redo_report():
   log = request.form["log"]
   depart = request.form["depart"]
-  files = request.form["files"]
-  return render_template('redo_report.html', log=log, depart=depart, files=files.split(";"))
+  files = request.form["files"].split(";")
+
+  fgroup = {}
+  for f in files:
+    if f[0]=='_':
+      f = f[1:]
+
+    fgroup.setdefault(f.split('_')[1], []).append(f)
+
+  return render_template('redo_report.html', log=log, depart=depart, files=fgroup)
 
 @app.route('/redo', methods=['GET'])
 def redo_view():
