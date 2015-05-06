@@ -42,6 +42,18 @@ function deletejob(taskid, printer){
       });
 }
 
+function makeJobDone(e, taskid, done){
+  $.post("{{ url_for('set_printdone') }}", 
+    {
+      taskid:taskid,
+      done:done
+      }, function(){
+      location.reload();
+      });
+  e.stopPropagation();
+  return true;
+}
+
 function reprint_sheets(taskid, printer){
   var fabric = $($("li#list-task-"+taskid+">div>span")[1]).text();
   var sheetJob = (fabric=="SHEETS")||(fabric=="SHEETL");
@@ -226,9 +238,10 @@ $( document ).ready(function() {
         <span class="col-xs-2">Log</span>
         <span class="col-xs-2">Fabric</span>
         <span class="col-xs-2">Submit Time</span>
-        <span class="col-xs-2">Units</span>
+        <span class="col-xs-1">Units</span>
         <span class="col-xs-1">Length</span>
         <span class="col-xs-3">Action</span>
+        <span class="col-xs-1"></span>
       </div>
       </li>
       {% for task in tasks %}
@@ -236,11 +249,11 @@ $( document ).ready(function() {
       <div class="row show-grid dyt-task-item {% if task.gradient %}bg-success{% endif %}" {% if view!="" %} data-toggle="collapse" data-parent="#tasks" href="#sheets-panel-{{ task.id }}" {% endif %}>
         <span class="col-xs-2">{% if not task.printer %} <input type="checkbox" class="select-task" value="{{ task.id }}">{% endif %} {{ task.log }}</span>
         <span class="col-xs-2">{{ task.fabric }}</span>
-        <span class="col-xs-2">{{ task.create_at.strftime('%m-%d %H:%M') }}</span>
-        <span class="col-xs-2">{{ task.units }}</span>
+        <span class="col-xs-2 {% if task.status=='printed' %}label label-success{% endif %}">{{ task.create_at.strftime('%m-%d %H:%M') }}</span>
+        <span class="col-xs-1">{{ task.units }}</span>
         <span class="col-xs-1">{{ task.length }}</span>
           {% if task.printer %}
-            {% if task.status=="dispatched" %}
+            {% if task.status in ("dispatched", "printed") %}
             <span class="col-xs-3">{{ task.modify_at.strftime('%m-%d %H:%M') }} --&gt; {{ task.printer }}</span>
             {% else %}
               <span class="col-xs-3"><button type="button" class="btn btn-sm btn-warning dyt-task-assigned">To:{{ task.printer }}</button></span>
@@ -256,6 +269,17 @@ $( document ).ready(function() {
             {{ task.originPrinter }}
           </span>
           {% endif %}
+        <span class="col-xs-1">
+            {% if task.status=='dispatched' %}
+            <button type="button" class="btn btn-xs btn-info" onclick="makeJobDone(event, {{ task.id }}, 1);" aria-label="done">
+              <span class="glyphicon glyphicon-eye-close" aria-hidden="true"></span>
+            </button>
+            {% elif task.status=='printed' %}
+            <button type="button" class="btn btn-xs btn-danger" onclick="makeJobDone(event, {{ task.id }}, 0);" aria-label="done">
+              <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
+            </button>
+            {% endif %}
+        </span>
       </div>
       {% if view!='' %}
       <div id="sheets-panel-{{ task.id }}" class="panel-collapse collapse" >

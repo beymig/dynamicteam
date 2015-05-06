@@ -164,6 +164,14 @@ def close_log():
 
   return render_template('close_log.html')
 
+@app.route('/printdone', methods=['POST'])
+def set_printdone():
+  taskid, done = int(request.form['taskid']), int(request.form['done'])
+  t = Task.query.get(taskid)
+  t.status = done and "printed" or "dispatched"
+  db.session.commit()
+  return ""
+
 @app.route('/gradient', methods=['GET','POST'])
 def gradient():
   if request.method == 'POST':
@@ -191,7 +199,7 @@ def show_tasks():
 
   #tasks = Task.query.order_by(Task.daystogo).filter(Task.status.in_(("assigned", None)))
   if view_type=="":
-    tasks = Task.query.order_by(Task.create_at).filter(Task.status.in_(("assigned", "dispatching"))).all()
+    tasks = Task.query.order_by(Task.create_at).filter(Task.status.in_(("assigned", "dispatching","printed"))).all()
     tasks.extend(Task.query.order_by(Task.create_at).filter_by(status=None).all())
   elif view_type[:3]=="log":
     tasks = Task.query.filter_by(log=view_type[4:]).all()
@@ -199,7 +207,7 @@ def show_tasks():
     day_before = int(view_type.split('-')[1])
     date_from = date.today()-timedelta(days=day_before)
     date_to = date.today()-timedelta(days=day_before-1)
-    tasks = Task.query.filter_by(status="dispatched").filter(Task.modify_at.between(date_from, date_to)).all()
+    tasks = Task.query.filter(Task.status.in_(("dispatched","printed"))).filter(Task.modify_at.between(date_from, date_to)).all()
 
   for t in tasks:
     o = Orders.query.get(t.log)
