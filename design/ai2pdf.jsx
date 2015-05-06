@@ -256,6 +256,17 @@
           item.subItems[0].text = gCount.e.text;
           item.subItems[1].text = gNumbers.eList.text;
         };
+        gSizeList.sizeList.onDoubleClick = function(){
+          var target = this.selection;
+          var size = target.text;
+          var count = target.subItems[0];
+          var numbers = target.subItems[1];
+
+          gNumbers.dSize.selection = gNumbers.dSize.find(size);
+          gCount.e.text = count;
+          gNumbers.eList.text = numbers;
+          this.remove(target);
+        };
       }
       with(expDlg.gButtons){
         bExport.onClick = function(){
