@@ -199,7 +199,7 @@ def show_tasks():
 
   #tasks = Task.query.order_by(Task.daystogo).filter(Task.status.in_(("assigned", None)))
   if view_type=="":
-    tasks = Task.query.order_by(Task.create_at).filter(Task.status.in_(("assigned", "dispatching","printed"))).all()
+    tasks = Task.query.order_by(Task.create_at).filter(Task.status.in_(("assigned", "dispatching"))).all()
     tasks.extend(Task.query.order_by(Task.create_at).filter_by(status=None).all())
   elif view_type[:3]=="log":
     tasks = Task.query.filter_by(log=view_type[4:]).all()
