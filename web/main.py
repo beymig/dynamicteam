@@ -190,12 +190,12 @@ def show_tasks():
   today = date.today()
   waiting = Task.query.order_by(Task.create_at).filter(Task.status != "dispatched").count()
   waiting += Task.query.order_by(Task.create_at).filter_by(status=None).count()
-  task_counts = [waiting]
+  task_counts = [('waiting',waiting)]
   for i in range(6):
     date_from = date.today()-timedelta(days=i)
     date_to = date.today()-timedelta(days=i-1)
     count = Task.query.filter_by(status="dispatched").filter(Task.modify_at.between(date_from, date_to)).count()
-    task_counts.append(count)
+    task_counts.append((date_from.strftime("%Y-%m-%d"), count))
 
   #tasks = Task.query.order_by(Task.daystogo).filter(Task.status.in_(("assigned", None)))
   if view_type=="":
@@ -204,9 +204,10 @@ def show_tasks():
   elif view_type[:3]=="log":
     tasks = Task.query.filter_by(log=view_type[4:]).all()
   else:
-    day_before = int(view_type.split('-')[1])
-    date_from = date.today()-timedelta(days=day_before)
-    date_to = date.today()-timedelta(days=day_before-1)
+    date_from = datetime.strptime(view_type, '%Y-%m-%d')
+    #day_before = int(view_type.split('-')[1])
+    #date_from = date.today()-timedelta(days=day_before)
+    date_to = date_from+timedelta(days=1)
     tasks = Task.query.filter(Task.status.in_(("dispatched","printed"))).filter(Task.modify_at.between(date_from, date_to)).all()
 
   for t in tasks:

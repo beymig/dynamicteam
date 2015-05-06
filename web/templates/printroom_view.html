@@ -225,9 +225,9 @@ $( document ).ready(function() {
     </div>
     <ul class="nav nav-pills" role="tablist">
       {% if view[:3]=='log' %}<li role="presentation"  class="active"><a href="{{ url_for('show_tasks') }}">{{ view }}</a></li> {% endif %}
-      <li role="presentation" {% if view=='' %} class="active" {% endif %}><a href="{{ url_for('show_tasks') }}">Waiting<span class="badge">{{ task_counts[0] }}</span></a></li>
-      {% for d in range(6) %}
-      <li role="presentation" {% if view=='day-%d'%d %} class="active" {% endif %}><a href="{{ url_for('show_tasks') }}?view={{ "day-%d"|format(d) }}">{{ "day-%d"|format(d) }}<span class="badge">{{ task_counts[d+1] }}</span></a></li>
+      <li role="presentation" {% if view=='' %} class="active" {% endif %}><a href="{{ url_for('show_tasks') }}">Waiting<span class="badge">{{ task_counts[0][1] }}</span></a></li>
+      {% for i in range(1, 6) %}
+        <li role="presentation" {% if view==task_counts[i][0] %} class="active" {% endif %}><a href="{{ url_for('show_tasks') }}?view={{ task_counts[i][0] }}">{{ task_counts[i][0][5:] }}<span class="badge">{{ task_counts[i][1] }}</span></a></li>
       {% endfor %}
       <li><a href="{{ url_for('show_sheet_tasks') }}" target="_blank">sheet list</a></li>
       <li><a href="{{ url_for('show_roll_tasks') }}" target="_blank">roll list</a></li>
