@@ -213,11 +213,14 @@
             bAdd: Button{text:'Add'},\
           },\
           gSizeList: Group{orientation:'row', alignChildren:'left',\
-            s: StaticText{ text:'Create Size:'},\
+            gUnitCount: Group{ orientation:'column', alignChildren:'left',\
+              s: StaticText{ text:'Total Units:'},\
+              sTotal: StaticText{ text:'0 Units'},\
+            },\
             sizeList:ListBox{size:[370, 100],properties:{\
-              numberOfColumns:3,\
+              numberOfColumns:4,\
               showHeaders:true,\
-              columnTitles:['Size','Count','#s'],\
+              columnTitles:['Size','Count','#s', 'Total'],\
             }},\
           },\
         },\
@@ -238,6 +241,17 @@
       return sizelist;
     }
 
+    function updateTotalUnits(expDlg){
+      var unitCount = 0;
+      with(expDlg.sizeSetting.gSizeList){
+        var sizeitems = sizeList.items;
+        for (var i = 0; i<sizeitems.length; i++){
+          unitCount += parseInt(sizeitems[i].subItems[2].text);
+        }
+      }
+      expDlg.sizeSetting.gSizeList.gUnitCount.sTotal.text = unitCount + " Units";
+    }
+
     function initializeDlg(expDlg, doc){
       with(expDlg.globalSetting){
         dir.e.text = doc.fullName.path;
@@ -255,6 +269,9 @@
           var item = gSizeList.sizeList.add('item', size);
           item.subItems[0].text = gCount.e.text;
           item.subItems[1].text = gNumbers.eList.text;
+          item.subItems[2].text = parseInt(gCount.e.text) * gNumbers.eList.text.split(',').length;
+
+          updateTotalUnits(expDlg);
         };
         gSizeList.sizeList.onDoubleClick = function(){
           var target = this.selection;
@@ -266,6 +283,7 @@
           gCount.e.text = count;
           gNumbers.eList.text = numbers;
           this.remove(target);
+          updateTotalUnits(expDlg);
         };
       }
       with(expDlg.gButtons){
