@@ -131,6 +131,19 @@ $( document ).ready(function() {
     $('#tasks input:checked').attr('checked', false);
     $('#tasks input.select-task[type=checkbox]').removeAttr('disabled');
 
+    $(function() {
+      $( "#datepicker" ).datepicker({
+        showOn: "button",
+        buttonImage: "static/images/calendar.gif",
+        buttonImageOnly: true,
+        buttonText: "Select date",
+        dateFormat:"yy-mm-dd",
+        onSelect: function(str){
+          window.location.href = "{{ url_for('show_tasks') }}?view="+str;
+        }
+      });
+    });
+
     $('.navbar-nav li').removeClass('active');
     $('.navbar-nav #nav-printroom').addClass('active');
     $( '#printers .btn' ).on('click', function(){
@@ -229,6 +242,7 @@ $( document ).ready(function() {
       {% for i in range(1, 6) %}
         <li role="presentation" {% if view==task_counts[i][0] %} class="active" {% endif %}><a href="{{ url_for('show_tasks') }}?view={{ task_counts[i][0] }}">{{ task_counts[i][0][5:] }}<span class="badge">{{ task_counts[i][1] }}</span></a></li>
       {% endfor %}
+      <li><input type="hidden" id="datepicker"></li>
       <li><a href="{{ url_for('show_sheet_tasks') }}" target="_blank">sheet list</a></li>
       <li><a href="{{ url_for('show_roll_tasks') }}" target="_blank">roll list</a></li>
     </ul>
