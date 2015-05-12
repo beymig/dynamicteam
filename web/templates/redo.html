@@ -28,6 +28,11 @@ function sewerCommitRedo(){
 }
 function commitRedo(depart){
   var elems = $("#selected-list li");
+  if (elems.length == 0){
+    alert("Can not commit empty redo!");
+    return;
+  }
+
   var selectedFiles = $.map(elems, function(elem){
       var str = $(elem).text();
       var result = str;
