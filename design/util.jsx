@@ -106,7 +106,7 @@ Util.getOriginalPdfFolder = function(log){
   return "";
 };
 
-Util.exportArtboard = function(fPath, doc, index){
+Util.exportArtboard = function(fPath, doc, index, force_over_write){
   var options = new PDFSaveOptions();
   options.compatibility = PDFCompatibility.ACROBAT8;
   options.generateThumbnails = true;
@@ -115,7 +115,7 @@ Util.exportArtboard = function(fPath, doc, index){
 
   var overwrite = true;
   var destFile = new File(fPath);
-  if ( destFile.exists ) {
+  if ( destFile.exists && !force_over_write) {
     overwrite = Window.confirm(destFile + " exists. Overwrite?");
   }
           

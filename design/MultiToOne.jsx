@@ -2,6 +2,33 @@
 //Set up vairaibles
 #include "util.jsx"
 
+function remove_vector_data(f){
+  var combiningDoc = app.activeDocument;
+  if (f.open("r")){
+    f.seek(0, 2);
+    var size = f.tell();
+    f.close();
+    if(size > 300*1024){
+      var thisDoc = app.open(f); //
+      thisDoc.selection = null;
+      app.doScript("select_cut_lines", "Default Actions");
+      var cut_lines = thisDoc.selection;
+      thisDoc.selection = null;
+      app.doScript("select_cut_dots", "Default Actions");
+      var cut_dots = thisDoc.selection;
+
+      for ( var i=0; i<cut_lines.length; i++){
+        cut_lines[i].selected = true;
+      }
+      app.doScript("delete_unselected", "Default Actions");
+
+      Util.exportArtboard(f, thisDoc, 0, true);
+      thisDoc.close(SaveOptions.DONOTSAVECHANGES);
+    }       
+  }
+  app.activeDocument = combiningDoc;
+}
+
 var INCH = (new UnitValue(1, "in")).as ('px');
 
 // all fabric number -= 2
@@ -97,7 +124,7 @@ var PrintBoard = function(artboard, roll){
     var doc = app.activeDocument;
     var saveName = new File(filename);
     var saveOpts = new PDFSaveOptions();
-    saveOpts.compatibility = PDFCompatibility.ACROBAT5;
+    saveOpts.compatibility = PDFCompatibility.ACROBAT8;
     saveOpts.generateThumbnails = true;
     saveOpts.preserveEditability = false;
     saveOpts.artboardRange = "1";
@@ -363,11 +390,6 @@ var Task = function(source){
       var print_file = folder + "\\" + filename;
 
       pb.export_pdf(cut_file_mid);
-      if (this.roll){
-        var pf = File(cut_file_mid);
-        pf.copy(cut_file);
-      }
-
       pb.remove_all();
       CUTCODE_TEXTFRAME.contents = "  ";
       
@@ -380,6 +402,12 @@ var Task = function(source){
       //getRidOfCutLine("Thru-Cut");
       deleteThruCut();
       pb.export_pdf(print_file);
+
+      if (this.roll){
+        var pf = File(cut_file_mid);
+        remove_vector_data(pf);
+        pf.copy(cut_file);
+      }
 
       //app.activeDocument.pageItems.removeAll();
       items = app.activeDocument.pageItems;
