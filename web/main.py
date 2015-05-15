@@ -144,28 +144,26 @@ def add_redo():
   status = "new"
   create_by = request.form["depart"]
 
-  fgroup = {}
-  files = pieces.split(';')
-  for f in files:
-    if f[0]=='_':
-      f = f[1:]
-
-    fgroup.setdefault(f.split('_')[1], []).append(f)
-
   redo = Redo(log, pieces, create_by)
   db.session.add(redo)
   db.session.commit()
-  #return redirect(url_for('redo_report'))
-  return render_template('redo_report.html', log=log, depart=create_by, files=fgroup)
+  return redirect("/redo?id=%d"%redo.id)
 
 @app.route('/redo', methods=['GET'])
 def view_redo():
   id = request.args.get("id", "")
   if id:
     redo = Redo.query.get(id)
-    info = [redo.log, redo.status]
-    info = info + redo.pieces.split(';')
-    return ''.join(['<p>%s</p>'%r for r in info])
+
+    fgroup = {}
+    files = redo.pieces.split(';')
+    for f in files:
+      if f[0]=='_':
+        f = f[1:]
+
+      fgroup.setdefault(f.split('_')[1], []).append(f)
+
+    return render_template('redo_report.html', log=redo.log, depart=redo.create_by, files=fgroup)
   else:
     redos = Redo.query.all()
     return ''.join(['<p>%s</p>'%' '.join([str(r.id), r.log, r.status]) for r in redos])
