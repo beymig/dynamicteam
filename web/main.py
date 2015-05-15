@@ -132,7 +132,7 @@ def modify_redo():
 def get_a_redo():
   redo = Redo.query.filter_by(status="new").first()
   
-  return redo and ';'.join([str(redo.id), redo.log, redo.create_by, redo.create_at.strftime('%m-%d %H:%M'), redo.pieces]) or ""
+  return redo and ';'.join([str(redo.id), redo.log, redo.create_by, redo.create_at.strftime('%m-%d %H:%M'), redo.pieces]) or " "
 
 @app.route('/redo/add', methods=['POST','GET'])
 def add_redo():
