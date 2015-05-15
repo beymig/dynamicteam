@@ -589,7 +589,7 @@ function getLogFolder(sFolder, log){
 
 function main(){
 
-	var ptthelper = new ExternalObject("lib:d:\\workspace\\dynamicteam\\src\\design\\ptthelper.dll");
+	var ptthelper = new ExternalObject("lib:ptthelper.dll");
     CUTCODE_TEXTFRAME = createTitleText();
 
   while(1){
