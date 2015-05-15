@@ -28,7 +28,7 @@
 </head>
 <body>
   <div class="container theme-showcase" role="main">
-    <a href="/redo">Back</a>
+    <a href="{{ url_for('add_redo') }}">Back</a>
     <button onclick="window.print();">Print this page</button>
     {% for fab in files %}
     <div class="page-header"><h4>LOG: {{ log }}</h4><h4>Fabric: {{ fab }}</h4>From: {{ depart }}</div>

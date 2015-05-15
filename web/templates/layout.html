@@ -48,7 +48,13 @@
         <ul class="nav navbar-nav">
           <li class="active"><a href="/">OverView</a></li>
           <li id="nav-printroom"><a href="/printroom">PrintRoom</a></li>
-          <li id="nav-redo"><a href="/redo">Redo</a></li>
+          <li id="nav-redo" class="dropdown" role="presentation">
+            <a class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false" role="button" href="#">Redo<span class="caret"></span></a>
+            <ul class="dropdown-menu" role="menu">
+              <li><a href="{{ url_for('add_redo') }}">Add Redo</a></li>
+              <li><a href="{{ url_for('view_redo') }}">Redo List</a></li>
+            </ul>
+          </li>
           <li id="nav-blanklist"><a href="/blanklist">BlankList</a></li>
           
         </ul>

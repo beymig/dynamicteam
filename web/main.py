@@ -27,6 +27,18 @@ class Blank(db.Model):
   count = db.Column(db.Integer, nullable=False)
   status = db.Column(db.String(20))
 
+class Redo(db.Model):
+  id = db.Column(db.Integer, primary_key=True)
+  log = db.Column(db.String(10), nullable=False)
+  pieces = db.Column(db.Text, nullable=False)
+  create_by = db.Column(db.String(20), nullable=False)
+  status = db.Column(db.String(20), nullable=False)
+  create_at = db.Column(db.DateTime, nullable=False)
+  def __init__(self, log, pieces, create_by):
+    self.log = log
+    self.pieces = pieces
+    self.create_by = create_by
+    self.status = "new"
 
 class Task(db.Model):
   id = db.Column(db.Integer, primary_key=True)
@@ -107,9 +119,56 @@ def redo_report():
 
   return render_template('redo_report.html', log=log, depart=depart, files=fgroup)
 
+@app.route('/redo/modify', methods=['POST'])
+def modify_redo():
+  id = request.form["id"]
+  status = request.form["status"]
+  redo = Redo.query.get(id)
+  redo.status = status
+  db.session.commit()
+  return 
+
+@app.route('/redo/query', methods=['GET'])
+def get_a_redo():
+  redo = Redo.query.filter_by(status="new").first()
+  
+  return redo and ';'.join([str(redo.id), redo.log, redo.create_by, redo.create_at.strftime('%m-%d %H:%M'), redo.pieces]) or ""
+
+@app.route('/redo/add', methods=['POST','GET'])
+def add_redo():
+  if request.method == 'GET':
+    return render_template('add_redo.html')
+
+  log = request.form["log"]
+  pieces = request.form["files"]
+  status = "new"
+  create_by = request.form["depart"]
+
+  fgroup = {}
+  files = pieces.split(';')
+  for f in files:
+    if f[0]=='_':
+      f = f[1:]
+
+    fgroup.setdefault(f.split('_')[1], []).append(f)
+
+  redo = Redo(log, pieces, create_by)
+  db.session.add(redo)
+  db.session.commit()
+  #return redirect(url_for('redo_report'))
+  return render_template('redo_report.html', log=log, depart=create_by, files=fgroup)
+
 @app.route('/redo', methods=['GET'])
-def redo_view():
-  return render_template('redo.html')
+def view_redo():
+  id = request.args.get("id", "")
+  if id:
+    redo = Redo.query.get(id)
+    info = [redo.log, redo.status]
+    info = info + redo.pieces.split(';')
+    return ''.join(['<p>%s</p>'%r for r in info])
+  else:
+    redos = Redo.query.all()
+    return ''.join(['<p>%s</p>'%' '.join([str(r.id), r.log, r.status]) for r in redos])
 
 @app.route('/blanklist/setstatus', methods=['POST'])
 def set_blank_staus():
