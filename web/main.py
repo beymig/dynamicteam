@@ -268,6 +268,9 @@ def show_tasks():
     tasks = Task.query.filter(Task.status.in_(("dispatched","printed"))).filter(Task.modify_at.between(date_from, date_to)).all()
 
   for t in tasks:
+    fields = t.folderid.split('_')
+    if len(fields[-1])<5:
+      t.redo_id = fields[-1]
     o = Orders.query.get(t.log)
     if o:
       t.create_at = o.create_at

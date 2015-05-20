@@ -325,9 +325,10 @@ var Task = function(source){
       /*source.open('r');
       var info = source.read();
       source.close();*/
+      var redo = source;
       var searchFolders = ORIGINAL_PDF_FOLDER.split(",");
       var logFolders = [];
-      var logNumber = source.log;
+      var logNumber = redo.log;
       for (var i=0; i<searchFolders.length; i++){
         logFolders = logFolders.concat(getLogFolder(searchFolders[i], logNumber));
       }
@@ -341,11 +342,11 @@ var Task = function(source){
         return;
       }
 
-      info = source.pieces;
+      info = redo.pieces;
       var files = info.map(function(fname){ return new File(logfolder+"\\"+fname+".pdf");});
 
       var attrs = logfolder.displayName.split("_");
-      this.log = source.log+"redo";
+      this.log = redo.log+"redo";
       if ( attrs[1]=="S" || attrs[1]=="L" || attrs[1]=="R"){
         attrs.splice(1,1);
         /*this.roll = true;

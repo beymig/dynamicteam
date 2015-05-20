@@ -261,7 +261,7 @@ $( document ).ready(function() {
       {% for task in tasks %}
       <li id="list-task-{{ task.id }}" class='list-group-item panel panel-default'>
       <div class="row show-grid dyt-task-item {% if task.gradient %}bg-success{% endif %}" {% if view!="" %} data-toggle="collapse" data-parent="#tasks" href="#sheets-panel-{{ task.id }}" {% endif %}>
-        <span class="col-xs-2">{% if not task.printer %} <input type="checkbox" class="select-task" value="{{ task.id }}">{% endif %} {{ task.log }}</span>
+        <span class="col-xs-2">{% if not task.printer %} <input type="checkbox" class="select-task" value="{{ task.id }}">{% endif %} {{ task.log }} {% if task.redo_id %}<a href="/redo?id={{ task.redo_id }}" target="_blank"><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span></a> {% endif %}</span>
         <span class="col-xs-2">{{ task.fabric }}</span>
         <span class="col-xs-2 {% if task.status=='printed' %}label label-success{% endif %}">{{ task.create_at.strftime('%m-%d %H:%M') }}</span>
         <span class="col-xs-1">{{ task.units }}</span>
