@@ -65,41 +65,12 @@ function commitRedo(depart){
       }
       return result;
       });
-  if (depart=="auto"){
-    post("{{ url_for('add_redo') }}",
-      {
-        depart:depart,
-        log:redoLog,
-        files:selectedFiles.join(';')
-      });
-  } else{
-    $.post(dtConfig.redoHost+"/newredo",
-      {
-        depart:depart,
-        log:redoLog,
-        files:selectedFiles.join(';')
-      },
-      function(data,status){
-        $("#report_log").val(redoLog);
-        $("#report_depart").val(depart);
-        $("#report_files").val(data);
-        $("#redo_report_form").submit();
-        //$.get("/redo/report", info, null, "json");
-        //alert("Data: " + data + "\nStatus: " + status);
-      });
-  }
-
-  /*$.post("{{ url_for('add_redo') }}",
-  {
-    depart:depart,
-    log:redoLog,
-    files:selectedFiles.join(';')
-    },function(data){
-      var w = window.open('about:blank', 'windowname');
-      w.document.write(data);
-      w.document.close();
-      location.reload();
-    });*/
+  post("{{ url_for('add_redo') }}",
+    {
+      depart:depart,
+      log:redoLog,
+      files:selectedFiles.join(';')
+    });
 }
 
 function addAllCandidates(){
@@ -294,8 +265,6 @@ function submit(){
           <span class="glyphicon glyphicon-arrow-up" aria-hidden="true">Commit</span><span class="caret"></span>
         </button>
         <ul class="dropdown-menu" role="menu">
-          <li><a href="#" onclick="commitRedo('auto')">For Auto</a></li>
-          <li class="divider"></li>
           <li><a href="#" onclick="sewerCommitRedo()">Sewing</a></li>
           <li class="divider"></li>
           <li><a href="#" onclick="commitRedo('Transfer')">Transfer</a></li>
