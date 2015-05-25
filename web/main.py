@@ -245,7 +245,7 @@ def gradient():
 def show_tasks():
   view_type = request.args.get("view", "")
   today = date.today()
-  waiting = Task.query.order_by(Task.create_at).filter(Task.status != "dispatched").count()
+  waiting = Task.query.order_by(Task.create_at).filter(Task.status.in_(("assigned", "dispatching"))).count()
   waiting += Task.query.order_by(Task.create_at).filter_by(status=None).count()
   task_counts = [('waiting',waiting)]
   for i in range(6):
