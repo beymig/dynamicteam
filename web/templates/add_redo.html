@@ -135,6 +135,7 @@ function updateSelectPanel(fileList){
   }
   // insert items into pool
   $("#candidate-list").html(innerHTML);
+  $("#btn-import").attr('disabled', 'disabled');
 
   // refresh filter
   updateFilter("#filter-fabric", fabric, true);
@@ -228,7 +229,7 @@ function submit(){
     <div class="input-group">
       <input type="text" id="log-number" class="form-control" placeholder="Input Log Number...">
       <span class="input-group-btn">
-        <button class="btn btn-default" type="button" onclick="importLog()">Import</button>
+        <button class="btn btn-default" id="btn-import" type="button" onclick="importLog()">Import</button>
       </span>
     </div><!-- /input-group -->
   </div><!-- /.col-lg-6 -->
