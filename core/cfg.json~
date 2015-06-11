@@ -1,0 +1,9 @@
+{
+  "NewTaskFolder":"C:\\NewTasks",
+  "WaitToPrintFolder":"C:\\WaitForPrint",
+  "DoneFolder":"C:\\DoneTasks",
+  "HotFolder":"C:\\Hot Folders",
+  "DBStr":"dynamicteam:dynamicteam@tcp(localhost:5000)/dynamicteam",
+  "OriginalPDFFolder":"C:\\FINISH ORDERS\\DYNAMIC ORDERS,C:\\FINISH ORDERS\\ERGO",
+  "RedoFolder":"C:\\FINISH ORDERS\\REDO DATA"
+}

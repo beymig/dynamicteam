@@ -1,0 +1,85 @@
+{% extends "layout.html" %}
+{% block body %}
+
+<script>
+
+function makeRedoDone(e, redoid, done){
+  $.post("{{ url_for('set_redodone') }}", 
+    {
+      redoid:redoid,
+      done:done
+      }, function(){
+      location.reload();
+      });
+  e.stopPropagation();
+  return true;
+}
+
+
+
+function ApplyFilter(e){
+  var filter = e.target.value;
+  var redos=$("li.list-group-item");
+  $.each(redos, function(idx, value){
+ if (idx==0){
+      return;
+    }
+    var fields = $(value).find("div>span");
+    var log = $(fields[0]).text();
+    if (~log.indexOf(filter)){
+      $(redos[idx]).show()
+    }else{
+      $(redos[idx]).hide();
+    }
+  });
+}
+
+</script>
+ 
+      
+<div class="row show-grid">
+      <div class="row placeholders">
+    <div class="row">
+      <input type="text" class="col-xs-4" id="log-number" oninput="ApplyFilter(event);" placeholder="Input To Filter">
+
+    </div>
+ <ul class="list-group panel-group" id="redos" >
+     <li class='list-group-item list-group-item-info'>
+         <div class="row show-grid">
+             <span class="col-xs-3">Log</span>
+             <span class="col-xs-3">Submit Time</span>
+             <span class="col-xs-3">Action</span>       
+         </div>
+     </li>
+
+{% for redo in redos %}
+            
+     <li id="list-task-{{ redo.id }}" class='list-group-item panel panel-default'>
+     <div>
+        <span class="col-xs-3">{{ redo.log }}</span>
+        <span class="col-xs-3">{{ redo.create_at }}</span>
+     </div>
+
+         {% if redo.create_by=='Shipping' %} 
+            {% if redo.status=='waiting' %}
+             <button type="button" class="btn btn-xs btn-danger" onclick="makeRedoDone(event, {{ redo.id }}, 0);" aria-label="done">
+             <span class="glyphicon glyphicon-eye-close" aria-hidden="true"></span>
+             </button>
+            {% else %}
+             <button type="button" class="btn btn-xs btn-info" onclick="makeRedoDone(event, {{ redo.id }}, 1);" aria-label="done">
+             <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span>
+             </button>
+            {% endif %}
+         {% endif %}
+        {% if redo.create_by!='Shipping' %}
+             <button type="button" class="btn btn-xs btn-danger" onclick="makeRedoDone(event, {{ redo.id }}, 0);" aria-label="done">
+             <span class="glyphicon glyphicon-eye-close" aria-hidden="true"></span>
+             </button>
+        {% endif %}
+      </li>
+        {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endblock %}
+
