@@ -96,11 +96,13 @@ function getSFPN(pieceID){
     fields.splice(1, 1);
   }
 
-  return [fields[0], fields[1], fields.slice(2, fields.length-1).join('_').replace(/\d/g, ''), fields[fields.length-1]];
+  var size_and_number = (fields[0] + "_" + fields[fields.length - 1]);
+  return [size_and_number, fields[1], fields.slice(2, fields.length-1).join('_').replace(/\d/g, '')];
 
 }
 
-function updateSelectPanel(fileList){
+function updateSelectPanel(fileList) {
+    var fileList = ["AS_9052_BACK_842023_1.pdf", "AS_9052_BACK_842023_2.pdf", "AS_9052_BACK_842023_3.pdf", "AS_9052_BACK_842023_4.pdf", "AS_9052_BACK_842023_5.pdf", "AS_9052_BACK_842023_6.pdf", "AS_29084_FRONT_842023_1.pdf", "AS_29084_FRONT_842023_2.pdf", "AS_29084_FRONT_842023_3.pdf", "AS_29084_FRONT_842023_4.pdf", "AS_29084_FRONT_842023_5.pdf", "AS_29084_FRONT_842023_6.pdf", "AXS_9052_BACK_842023_1.pdf", "AXS_9052_BACK_842023_2.pdf", "AXS_29084_FRONT_842023_1.pdf", "AXS_29084_FRONT_842023_2.pdf"]
   // delete all items in pool
   var innerHTML = "";
   var pieceID = "";
@@ -108,24 +110,28 @@ function updateSelectPanel(fileList){
   var size = [];
   var part = [];
   var num = [];
-  for ( var i=0; i<fileList.length; ++i){
-    pieceID = fileList[i].substr(0, fileList[i].length-4);
-    innerHTML+='<li class="list-group-item dyt-piece-cand" id="cand-'+pieceID+'">'+pieceID+'<button class="btn btn-xs btn-success pull-right" onclick="selectPiece(\''+pieceID+'\')"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button></li></li>';
+  var size_and_number = [];
+  for (var i = 0; i < fileList.length; ++i) {
+     
+      pieceID = fileList[i].substr(0, fileList[i].length - 4);
+      
+      
 
     var sfpn = getSFPN(pieceID);
+    
+    innerHTML += '<li class="list-group-item dyt-piece-cand" id="cand-' + pieceID + '">' + pieceID +  '<button class="btn btn-xs btn-success pull-right" onclick="selectPiece(\'' + pieceID + '\')"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button></li></li>';
 
-    if (size.indexOf(sfpn[0]) == -1){
-      size[size.length]=sfpn[0];
+    if (size_and_number.indexOf(sfpn[0]) == -1){
+      size_and_number[size_and_number.length]=sfpn[0];
     }
-    if (fabric.indexOf(sfpn[1]) == -1){
+
+    if (fabric.indexOf(sfpn[1]) == -1) {
       fabric[fabric.length]=sfpn[1];
     }
     if (sfpn[2] && part.indexOf(sfpn[2]) == -1){
       part[part.length]=sfpn[2];
     }
-    if (num.indexOf(sfpn[3]) == -1){
-      num[num.length] = sfpn[3];
-    }
+
     /*for (var j=2; j<fields.length-1; j++){
       var pname = fields[j].replace(/\d/g,'');
       if (part.indexOf(pname) == -1){
@@ -136,24 +142,27 @@ function updateSelectPanel(fileList){
   // insert items into pool
   $("#candidate-list").html(innerHTML);
   $("#btn-import").attr('disabled', 'disabled');
-
+  
   // refresh filter
   updateFilter("#filter-fabric", fabric, true);
-  updateFilter("#filter-size", size);
+  updateFilter("#filter-size_and_number", size_and_number);
   updateFilter("#filter-part", part);
-  updateFilter("#filter-number", num);
-
+  
+  
+  
 }
 
 function updateFilter(ctrl, filters, active){
   var innerHTML = "";
-  for (var i=0; i<filters.length; i++){
+  for (var i = 0; i < filters.length; i++) {
     innerHTML += '<button class="btn btn-' + (active?'success':'default') + '" type="button">'+filters[i]+'</button>';
+
   }
   $(ctrl).html(innerHTML);
 
   $(ctrl + ' button' ).on('click', function(){
-    var btn = $(this);
+      
+      var btn = $(this);
     if ( btn.hasClass("btn-success")) {
       btn.removeClass('btn-success').addClass('btn-default');
     }else {
@@ -164,12 +173,14 @@ function updateFilter(ctrl, filters, active){
   filtePieces();
 }
 
-function selectPiece(pieceID){
+function selectPiece(pieceID) {
+    
   var li = $("li#cand-"+pieceID);
   li.addClass("cand-selected");
   li.fadeOut();
 
-  li = $('<li class="list-group-item dyt-piece-selected" id="selected-'+pieceID+'">'+pieceID+'<button class="btn btn-xs btn-danger pull-left" onclick="unselectPiece(\''+pieceID+'\')"><span class="glyphicon glyphicon-minus" aria-hidden="true"></span></button><input class="pull-right" size="2" type="text" value="1"></li>').appendTo("#selected-list").fadeIn();
+  li = $('<li class="list-group-item dyt-piece-selected" id="selected-' + pieceID + '">' + pieceID + '<button class="btn btn-xs btn-danger pull-left" onclick="unselectPiece(\'' + pieceID + '\')"><span class="glyphicon glyphicon-minus" aria-hidden="true"></span></button><input class="pull-right" size="2" type="text" value="1"></li>').appendTo("#selected-list").fadeIn();
+  
 }
 
 function unselectPiece(pieceID){
@@ -194,15 +205,18 @@ function groupSelect(groupID, select){
 }
 
 function filtePieces(){
-  var filterIDs = ["#filter-size", "#filter-fabric", "#filter-part", "#filter-number"];
+  var filterIDs = ["#filter-size_and_number", "#filter-fabric", "#filter-part"];
   var filters = [];
   for ( var i=0; i<filterIDs.length; i++){
-    var elms = $(filterIDs[i]+" button.btn-success");
+      
+      var elms = $(filterIDs[i] + " button.btn-success");
+      
     filters[i]= $.map(elms, function(elm){ return $(elm).text();});
     /*for ( var ei = 0; ei<elms.length; ++ei){
       filters[i][ei]=$(elms[ei]).text();
     }*/
   }
+  
   var pieceElms = $("#candidate-list li");
   for (var i=0; i<pieceElms.length; i++){
     var sfpn = getSFPN($(pieceElms[i]).text());
@@ -215,7 +229,7 @@ function filtePieces(){
       }
     }
     if (match && !$(pieceElms[i]).hasClass("cand-selected"))
-      $(pieceElms[i]).fadeIn();
+        $(pieceElms[i]).fadeIn();
   }
 }
 
@@ -236,7 +250,7 @@ function submit(){
   <div id="filter" class="row placeholders">
     <h4 class="page-header">Filter</h4>
     <div class="row">
-      {% for flt in (("fabric", 4), ("size", 6), ("part", 12), ("number", 12)) %}
+      {% for flt in (("fabric", 4), ("size_and_number", 6), ("part", 12)) %}
       <div class="col-md-{{ flt[1] }}">
         <h4>{{ flt[0] }}
           <button class="btn btn-xs btn-success" type="button" onclick="groupSelect('filter-{{ flt[0] }}', true)"><span class="glyphicon glyphicon-log-in" aria-hidden="true"></span></button>

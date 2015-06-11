@@ -11,7 +11,7 @@ app = Flask(__name__)
 #app.config.from_object(__name__)
 basedir = os.path.abspath(os.path.dirname(__file__))
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///'+os.path.join(basedir, "flask.db")
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://%s'%cfg.DBStr
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://dynamicteam:dynamicteam@localhost/dynamicteam?charset=utf8&use_unicode=0'
 db = SQLAlchemy(app)
 
 class Orders(db.Model):
@@ -165,8 +165,38 @@ def view_redo():
 
     return render_template('redo_report.html', log=redo.log, depart=redo.create_by, files=fgroup)
   else:
-    redos = Redo.query.all()
-    return ''.join(['<p>%s</p>'%' '.join([str(r.id), r.log, r.status]) for r in redos])
+    redos = Redo.query.order_by(Redo.id).filter(Redo.status!=("finished"))
+    return ''.join(['<p>%s</p>'%' '.join([str(r.id), r.log, r.status, r.create_by]) for r in redos])
+
+
+@app.route('/redo/sewing', methods=['GET'])
+def redo_sewing():
+ redos = Redo.query.order_by(Redo.create_at).filter (Redo.create_by.startswith("sew")).filter(Redo.status.startswith("built"))
+ return render_template('redo_by_department.html', redos=redos)
+
+@app.route('/redo/transfer', methods=['GET'])
+def redo_transfer():
+ redos = Redo.query.order_by(Redo.create_at).filter (Redo.create_by.startswith("Transfer")).filter(Redo.status.startswith("built"))
+ return render_template('redo_by_department.html', redos=redos)
+
+@app.route('/redo/zund', methods=['GET'])
+def redo_zund():
+ redos = Redo.query.order_by(Redo.create_at).filter (Redo.create_by.startswith("Zund")).filter(Redo.status.startswith("built"))
+ return render_template('redo_by_department.html', redos=redos)
+
+@app.route('/redo/shipping', methods=['GET'])
+def redo_shipping():
+ redos = Redo.query.order_by(Redo.create_at).filter(Redo.create_by=="Shipping").filter(Redo.status.in_(("built","waiting")))
+ return render_template('redo_by_department.html', redos=redos)
+
+@app.route('/redodone', methods=['POST'])
+def set_redodone():
+  redoid, done = int(request.form['redoid']), int(request.form['done'])
+  r = Redo.query.get(redoid)
+  r.modify_at = done and datetime.now();
+  r.status = done and "waiting" or "finished"
+  db.session.commit()
+  return ""
 
 @app.route('/blanklist/setstatus', methods=['POST'])
 def set_blank_staus():
@@ -174,7 +204,6 @@ def set_blank_staus():
   b = Blank.query.get(blankid)
   b.status = status
   db.session.commit()
-
   return redirect(url_for('blank_view'))
 
 @app.route('/blanklist', methods=['GET'])

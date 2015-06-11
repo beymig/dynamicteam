@@ -42,6 +42,7 @@ var FABRIC_LIST = {
   "2031 DYNA DRY":["DYNA-DRY", 61, 60],
   "AEROFIBER":["DYNAMIC", 60, 90],
   "DRY-TEC":["DYNAMIC", 60, 90],
+  "DRY TEC":["DYNAMIC", 60, 90],
   "DAZZLE":["DYNAMIC", 60, 90],
   "5235":["FLEX-DRY", 60, 90],
   "3650":["FLEX-DRY", 60, 90],

@@ -1,9 +1,9 @@
 {
-  "NewTaskFolder":"R:\\NewTasks",
-  "WaitToPrintFolder":"R:\\WaitForPrint",
-  "DoneFolder":"R:\\DoneTasks",
-  "HotFolder":"R:\\Hot Folders",
-  "DBStr":"root:dynamicteam@/dynamicteam",
-  "OriginalPDFFolder":"O:\\FINISH ORDERS\\DYNAMIC ORDERS,O:\\FINISH ORDERS\\ERGO",
-  "RedoFolder":"O:\\FINISH ORDERS\\REDO DATA"
+  "NewTaskFolder":"C:\\NewTasks",
+  "WaitToPrintFolder":"C:\\WaitForPrint",
+  "DoneFolder":"C:\\DoneTasks",
+  "HotFolder":"C:\\Hot Folders",
+  "DBStr":"dynamicteam:dynamicteam@tcp(localhost:8080)/dynamicteam",
+  "OriginalPDFFolder":"C:\\FINISH ORDERS\\DYNAMIC ORDERS,C:\\FINISH ORDERS\\ERGO",
+  "RedoFolder":"C:\\FINISH ORDERS\\REDO DATA"
 }
