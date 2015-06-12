@@ -96,13 +96,13 @@ function getSFPN(pieceID){
     fields.splice(1, 1);
   }
 
-  var sizenum = (fields[0] + "_" + fields[fields.length - 1]);
-  return [sizenum, fields[1], fields.slice(2, fields.length-1).join('_').replace(/\d/g, '')];
+  var size_and_number = (fields[0] + "_" + fields[fields.length - 1]);
+  return [size_and_number, fields[1], fields.slice(2, fields.length-1).join('_').replace(/\d/g, '')];
 
 }
 
 function updateSelectPanel(fileList) {
-    var fileList = ["AS_9052_BACK_842023_1.pdf", "AS_9052_BACK_842023_2.pdf", "AS_9052_BACK_842023_3.pdf", "AS_9052_BACK_842023_4.pdf", "AS_9052_BACK_842023_5.pdf", "AS_9052_BACK_842023_6.pdf", "AS_29084_FRONT_842023_1.pdf", "AS_29084_FRONT_842023_2.pdf", "AS_29084_FRONT_842023_3.pdf", "AS_29084_FRONT_842023_4.pdf", "AS_29084_FRONT_842023_5.pdf", "AS_29084_FRONT_842023_6.pdf", "AXS_9052_BACK_842023_1.pdf", "AXS_9052_BACK_842023_2.pdf", "AXS_29084_FRONT_842023_1.pdf", "AXS_29084_FRONT_842023_2.pdf"]
+    var fileList = ["_AL_FLAT29121_843001_LABELS.pdf", "_AL_MESH29121_843001_LABELS.pdf", "_AM_FLAT29121_843001_LABELS.pdf", "_AM_MESH29121_843001_LABELS.pdf", "_AS_FLAT29121_843001_LABELS.pdf", "_AS_MESH29121_843001_LABELS.pdf", "_YL_FLAT29121_843001_LABELS.pdf", "_YL_MESH29121_843001_LABELS.pdf", "_YM_FLAT29121_843001_LABELS.pdf", "_YM_MESH29121_843001_LABELS.pdf", "_YXL_FLAT29121_843001_LABELS.pdf", "_YXL_MESH29121_843001_LABELS.pdf", "AL_FLAT29121_BACK_LEFT_LEG_843001.pdf", "AL_FLAT29121_BACK_RIGHT_LEG_843001.pdf", "AL_FLAT29121_FRONT_LEFT_LEG_843001.pdf", "AL_FLAT29121_FRONT_RIGHT_LEG_843001.pdf", "AL_MESH29121_BACK_YOKE_843001.pdf", "AM_FLAT29121_BACK_LEFT_LEG_843001_1.pdf", "AM_FLAT29121_BACK_RIGHT_LEG_843001_1.pdf", "AM_FLAT29121_FRONT_LEFT_LEG_843001_1.pdf", "AM_FLAT29121_FRONT_RIGHT_LEG_843001_1.pdf", "AM_MESH29121_BACK_YOKE_843001_1.pdf", "AM_FLAT29121_BACK_LEFT_LEG_843001_2.pdf", "AM_FLAT29121_BACK_RIGHT_LEG_843001_2.pdf", "AM_FLAT29121_FRONT_LEFT_LEG_843001_2.pdf", "AM_FLAT29121_FRONT_RIGHT_LEG_843001_2.pdf", "AM_MESH29121_BACK_YOKE_843001_2.pdf", "AS_FLAT29121_BACK_LEFT_LEG_843001_1.pdf", "AS_FLAT29121_BACK_RIGHT_LEG_843001_1.pdf", "AS_FLAT29121_FRONT_LEFT_LEG_843001_1.pdf", "AS_FLAT29121_FRONT_RIGHT_LEG_843001_1.pdf", "AS_MESH29121_BACK_YOKE_843001_1.pdf", "AS_FLAT29121_BACK_LEFT_LEG_843001_2.pdf", "AS_FLAT29121_BACK_RIGHT_LEG_843001_2.pdf", "AS_FLAT29121_FRONT_LEFT_LEG_843001_2.pdf", "AS_FLAT29121_FRONT_RIGHT_LEG_843001_2.pdf", "AS_MESH29121_BACK_YOKE_843001_2.pdf", "YL_FLAT29121_BACK_LEFT_LEG_843001_1.pdf", "YL_FLAT29121_BACK_RIGHT_LEG_843001_1.pdf", "YL_FLAT29121_FRONT_LEFT_LEG_843001_1.pdf", "YL_FLAT29121_FRONT_RIGHT_LEG_843001_1.pdf", "YL_MESH29121_BACK_YOKE_843001_1.pdf", "YL_FLAT29121_BACK_LEFT_LEG_843001_2.pdf", "YL_FLAT29121_BACK_RIGHT_LEG_843001_2.pdf", "YL_FLAT29121_FRONT_LEFT_LEG_843001_2.pdf", "YL_FLAT29121_FRONT_RIGHT_LEG_843001_2.pdf", "YL_MESH29121_BACK_YOKE_843001_2.pdf"]
   // delete all items in pool
   var innerHTML = "";
   var pieceID = "";
@@ -110,7 +110,7 @@ function updateSelectPanel(fileList) {
   var size = [];
   var part = [];
   var num = [];
-  var sizenum = [];
+  var size_and_number = [];
   for (var i = 0; i < fileList.length; ++i) {
      
       pieceID = fileList[i].substr(0, fileList[i].length - 4);
@@ -121,8 +121,8 @@ function updateSelectPanel(fileList) {
     
     innerHTML += '<li class="list-group-item dyt-piece-cand" id="cand-' + pieceID + '">' + pieceID +  '<button class="btn btn-xs btn-success pull-right" onclick="selectPiece(\'' + pieceID + '\')"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button></li></li>';
 
-    if (sizenum.indexOf(sfpn[0]) == -1){
-      sizenum[sizenum.length]=sfpn[0];
+    if (size_and_number.indexOf(sfpn[0]) == -1){
+      size_and_number[size_and_number.length]=sfpn[0];
     }
 
     if (fabric.indexOf(sfpn[1]) == -1) {
@@ -145,7 +145,7 @@ function updateSelectPanel(fileList) {
   
   // refresh filter
   updateFilter("#filter-fabric", fabric, true);
-  updateFilter("#filter-sizenum", sizenum);
+  updateFilter("#filter-size_and_number", size_and_number);
   updateFilter("#filter-part", part);
   
   
@@ -205,7 +205,7 @@ function groupSelect(groupID, select){
 }
 
 function filtePieces(){
-  var filterIDs = ["#filter-sizenum", "#filter-fabric", "#filter-part"];
+  var filterIDs = ["#filter-size_and_number", "#filter-fabric", "#filter-part"];
   var filters = [];
   for ( var i=0; i<filterIDs.length; i++){
       
@@ -250,7 +250,7 @@ function submit(){
   <div id="filter" class="row placeholders">
     <h4 class="page-header">Filter</h4>
     <div class="row">
-      {% for flt in (("fabric", 4), ("size", 6), ("part", 12), ("number", 12), ("sizenum",12)) %}
+      {% for flt in (("fabric", 4), ("size_and_number", 6), ("part", 12)) %}
       <div class="col-md-{{ flt[1] }}">
         <h4>{{ flt[0] }}
           <button class="btn btn-xs btn-success" type="button" onclick="groupSelect('filter-{{ flt[0] }}', true)"><span class="glyphicon glyphicon-log-in" aria-hidden="true"></span></button>
