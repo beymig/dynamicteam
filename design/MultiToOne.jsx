@@ -1,6 +1,38 @@
-﻿// JavaScript Document
+// JavaScript Document
 //Set up vairaibles
-#include "m2o_cfg.jsx"
+#include "util.jsx"
+
+
+
+function remove_vector_data(f){
+    
+  var combiningDoc = app.activeDocument;
+  if (f.open("r")){
+    f.seek(0, 2);
+    var size = f.tell();
+    f.close();
+    if(size > 300*1024){
+      var thisDoc = app.open(f); //
+      thisDoc.selection = null;
+      app.doScript("select_cut_lines", "Default Actions");
+      var cut_lines = thisDoc.selection;
+      thisDoc.selection = null;
+      app.doScript("select_cut_dots", "Default Actions");
+      var cut_dots = thisDoc.selection;
+
+      for ( var i=0; i<cut_lines.length; i++){
+        cut_lines[i].selected = true;
+      }
+      app.doScript("delete_unselected", "Default Actions");
+
+      Util.exportArtboard(f, thisDoc, 0, true);
+      thisDoc.close(SaveOptions.DONOTSAVECHANGES);
+    }       
+  }
+  app.activeDocument = combiningDoc;
+}
+
+var INCH = (new UnitValue(1, "in")).as ('px');
 
 // all fabric number -= 2
 function Rect(ltwh){
@@ -66,14 +98,16 @@ function RectPiece(pageitem){
   }
 }
 
-var PrintBoard = function(artboard){
+var PrintBoard = function(artboard, roll){
   $.writeln(artboard.artboardRect);
-  this.width = artboard.artboardRect[2];
+  var margin = roll?0:INCH;
+  this.roll = roll;
+  this.width = artboard.artboardRect[2]-margin;
   this.height = artboard.artboardRect[3];
   this.lowest = 0;
   this.insert_points = [];
   
-  this.insert_points.push([DOT_SIZE, -DOT_SIZE-20]);
+  this.insert_points.push([DOT_SIZE+margin, -DOT_SIZE-TITLE_SIZE]);
   this.pieces = [];
   this.dots = [];
 
@@ -93,7 +127,7 @@ var PrintBoard = function(artboard){
     var doc = app.activeDocument;
     var saveName = new File(filename);
     var saveOpts = new PDFSaveOptions();
-    saveOpts.compatibility = PDFCompatibility.ACROBAT5;
+    saveOpts.compatibility = PDFCompatibility.ACROBAT8;
     saveOpts.generateThumbnails = true;
     saveOpts.preserveEditability = false;
     saveOpts.artboardRange = "1";
@@ -112,7 +146,7 @@ var PrintBoard = function(artboard){
   {
     //var piece = new RectPiece(pageitem);
     var rect = piece.get_rect();
-    ex_rect = rect.get_expand_rect(DOT_SIZE);
+    var ex_rect = rect.get_expand_rect(DOT_SIZE);
     for(var i=0; i<this.insert_points.length; i++)
     {
       var tr = ex_rect.get_copy_at(this.insert_points[i]);
@@ -148,10 +182,17 @@ var PrintBoard = function(artboard){
   {
     var point = [rect.l, rect.t];
     piece.move_to(point);
-    this.place_dot_around(rect);
+    if (this.roll){
+      this.place_dot_around(rect);
+    }
+
+    var ex_rect = rect.get_expand_rect(DOT_SIZE*(this.roll?1:4));
+    if (ex_rect.b < this.lowest)
+      this.lowest = ex_rect.b;
+
     this.pieces.push(piece);
-    this.insert_points.push([rect.r+DOT_SIZE, rect.t]);
-    this.insert_points.push([rect.l, rect.b-DOT_SIZE]);//piece.y-piece.height]);
+    this.insert_points.push([ex_rect.r, rect.t]);
+    this.insert_points.push([rect.l, ex_rect.b]);//piece.y-piece.height]);
     this.insert_points.sort(function(a, b)
       {
         return -(a[1]-b[1])|| (a[0] - b[0]);
@@ -164,9 +205,6 @@ var PrintBoard = function(artboard){
 
     dot.move_to(point);
     this.dots.push(dot);
-    var bottom = dot.get_rect().b;
-    if (bottom < this.lowest)
-      this.lowest = bottom;
   };
 
   this.place_dot_around = function(rect){
@@ -196,172 +234,249 @@ function import_piece(doc, filename){
   return new RectPiece(pi);
 };
 
-function getRidOfCutLine(colorName)
-{
-  var doc, items, i = 0, n = 0, item, swcolor, selectionArray = [];
-  doc = app.activeDocument;
-  try
-  {
-      swcolor = doc.swatches.getByName ( colorName );
-  }
-  catch(e)
-  {
-      return;
+function deleteThruCut(){
+  var items = app.activeDocument.selection;
+  for(var i = 0;i < items.length;i++){
+    items[i].selected = false;
   }
 
-  var color = swcolor.color.spot.color ;
-
-  items = doc.pageItems;
-  for ( i = 0; i < items.length ; i++ )
-  {
-    item = items[i];
-    if ( item.strokeColor && item.strokeColor.typename == swcolor.color.typename){
-      if(item.strokeColor.spot.color.cyan == color.cyan
-          && item.strokeColor.spot.color.magenta == color.magenta
-          && item.strokeColor.spot.color.yellow == color.yellow
-          && item.strokeColor.spot.color.black == color.black ){
-            item.remove();
-            $.writeln("remove cutline: ",i);
-          }
-    }
-  }
+  app.doScript ("rm thru cut", "Default Actions");
 }
 
-var Task = function(folder){
-  var _this = this;
 
-  var group_files = function(folder){
-    //var re = new RegExp(".*\\.(ai|eps|pdf)$", "i");
-    //var files = folder.getFiles(function(f){return f.displayName.match(re);});///\.(ai|eps|pdf)$/i);
-    var files = folder.getFiles(/\.(ai|eps|pdf)$/i);
-    var size_groups = {};
-    for ( var i = 0; i < files.length; i++){
-      var attr = files[i].displayName.split("_");
-      var size;
-      var fabric;
-      if ( attr[0]=="" ){
-        attr = attr.slice(1);
+var Task = function(source){
+
+  this.init = function(){
+    // detect task type
+    if (source instanceof Folder){
+      var files = source.getFiles(/\.(ai|eps|pdf)$/i);
+      var attrs = source.displayName.split("_");
+
+      this.log = attrs[0];
+
+      // [
+      //   ('foldername', [('basename', files), ...])
+      //   ...
+      // ]
+      if ( attrs[1]=="S" || attrs[1]=="L"){
+        this.roll = false;
+        // if sheet
+        // split folder by Nothing; split sheet by body size > number; arrange by piece size
+        var sheetGroup = files.map(function(f){
+          var attr = f.displayName.split(".")[0].split("_");
+          if ( attr[0]=="" ){
+            attr = attr.slice(1);
+          }
+          return [attr[0], attr[attr.length-1], f]; //[size, number]
+        }).groupBy(function(item){ return [item[0], item[1]].join('_'); });
+
+
+        this.unit_count = attrs[2];
+        this.filesArrangeStruct = {}
+        this.filesArrangeStruct["SHEET"+attrs[1]]= sheetGroup.keys().sort(function(l, r){
+          var lf = sheetGroup[l][0];
+          var rf = sheetGroup[r][0];
+          if (lf[0]!=rf[0]){
+            return size_order.indexOf(lf[0]) - size_order.indexOf(rf[0]);
+          }else{
+            return (parseInt(lf[1])||0) - (parseInt(rf[1])||0);
+          }
+        }).map(function(item){return [item, sheetGroup[item]];});
       }
-      size = attr[0];
-      fabric = attr[1]=="FLAT"?attr[2]:attr[1];
-      fabric = fabric.replace("FLAT", "");
+      else{
+        this.roll = true;
+        // if roll
+        // split folder by fabric; split sheet by body size; sort by piece size
+        // TODO for compatibility, remove later
+        if(attrs[1]=="R")
+          this.unit_count = attrs[2];
+        else
+          this.unit_count = attrs[1];
 
-      if ( ! (size in size_groups) ){
-        size_groups[size] = {};
-      }
-
-      var size_group = size_groups[size];
-      if ( ! (fabric in size_group) ){
-        size_group[fabric] = [files[i]];
-      } else{
-        size_group[fabric].push(files[i]);
+        var fabric_groups = files.map(function(f){
+          var attr = f.displayName.split("_");
+          if ( attr[0]=="" ){
+            attr = attr.slice(1);
+          }
+          var size = attr[0];
+          // TODO for compatibility, remove later
+          var fabric = attr[1]=="FLAT"?attr[2]:attr[1];
+          fabric = fabric.replace("FLAT", "").replace(/^\s+|\s+$/g, '');
+          return [size, fabric, f]; //[size, number]
+        }).groupBy(function(item){
+          return item[1];
+        });
+        for ( var key in fabric_groups){
+          $.writeln(key);
+        }
+        for ( var key in fabric_groups){
+          if (key=="keys")
+            continue;
+          var size_groups = fabric_groups[key].groupBy(function(item){return item[0];});
+          fabric_groups[key] = size_groups.keys().sort(function(l, r){
+            return size_order.indexOf(l) - size_order.indexOf(r)
+          }).map(function(size){
+            return [size, size_groups[size]];
+          });
+        }
+        this.filesArrangeStruct = fabric_groups;
       }
     }
-    return size_groups;
+    else{
+      // redo
+      // split folder by nothing; split sheet by Nothing; arrange sort by body size > piece size
+      source.open('r');
+      var info = source.read();
+      source.close();
+
+      info = info.split(";");
+      var folderName = info.shift();
+      var files = info.map(function(fname){ return new File(fname);});
+
+      var attrs = folderName.split("_");
+      this.log = attrs[0];
+      if ( attrs[1]=="S" || attrs[1]=="L" || attrs[1]=="R"){
+        attrs.splice(1,1);
+        /*this.roll = true;
+        this.unit_count = attrs[2];
+        this.filesArrangeStruct = {}
+        this.filesArrangeStruct["SHEET"+attrs[1]]= [["mix", files.map(function(f){ return ["", "", f];})]];*/
+      }
+      //else{
+        this.roll = true;
+        this.unit_count = 1;//attrs[1];
+        var fabric_groups = files.map(function(f){
+          var attr = f.displayName.split("_");
+          if ( attr[0]=="" ){
+            attr = attr.slice(1);
+          }
+          var size = attr[0];
+          var fabric = attr[1]=="FLAT"?attr[2]:attr[1];
+          fabric = fabric.replace("FLAT", "").replace(/^\s+|\s+$/g, '');
+          return [size, fabric, f]; //[size, number]
+        }).groupBy(function(item){
+          return item[1];
+        });
+        for ( var key in fabric_groups){
+          if (key=="keys")
+            continue;
+          var size_groups = fabric_groups[key].groupBy(function(item){return item[0];});
+          fabric_groups[key] = [["mix", size_groups.keys().sort(function(l, r){return size_order.indexOf(l) - size_order.indexOf(r)}).map(function(key){
+            return size_groups[key];
+          })]];
+        }
+        this.filesArrangeStruct = fabric_groups;
+      //}
+    }
   };
 
-  var init = function(folder){
-    _this.folder = folder;
-    var folder_fields = folder.displayName.split("_");
-    _this.log = folder_fields[0];
-    _this.unit_count = folder_fields[1];
+  this.combinePieces = function(ab, folder, filebase, pieces){
+    // export
+    var size_seq = 0;
+    var total_len = 0;
+    while(pieces.length > 0){
+      var filename = [filebase, size_seq++].join('_') +".pdf";
 
-    _this.size_groups = group_files(folder);
+      resize_artboard(ab, 0, 120);
+      var pb = new PrintBoard(ab, this.roll);
+      //var timestamp = (new Date()).getTime();
+      CUTCODE_TEXTFRAME.contents = filename;
+      redraw();
+      pb.import_pieces(pieces);
+      var height = (new UnitValue(-pb.lowest, "px")).as ('in');
+      resize_artboard(ab, 0, height);
+      total_len += Math.ceil(height);
+
+
+      var cut_file = CUT_OUTPUT_FOLDER+"\\" + filename;
+      var cut_file_mid = CUT_OUTPUT_FOLDER_MID+"\\" + filename;
+      var print_file = folder + "\\" + filename;
+
+      pb.export_pdf(cut_file_mid);
+      pb.remove_all();
+      CUTCODE_TEXTFRAME.contents = "  ";
+      
+      //
+      var cutpiece = import_piece(app.activeDocument, cut_file_mid);
+      cutpiece.move_to([this.roll?0:INCH,0]);
+      cutpiece.flip();
+      cutpiece.pageitem().embed();
+      
+      //getRidOfCutLine("Thru-Cut");
+      deleteThruCut();
+      pb.export_pdf(print_file);
+
+      if (this.roll){
+        var pf = File(cut_file_mid);
+        remove_vector_data(pf);
+        pf.copy(cut_file);
+      }
+
+      //app.activeDocument.pageItems.removeAll();
+      items = app.activeDocument.pageItems;
+      for ( i = 0; i < items.length ; i++ )
+      {
+        if (items[i] != CUTCODE_TEXTFRAME){
+          if (!items[i].hidden)
+            items[i].remove();
+        }
+      }
+    }
+    return total_len;
+  };
+
+  this.importAndOrderBySize = function(files){
+    var pieces = import_all(files);
+    pieces.sort(function(a, b)
+        {
+          var ar = a.get_rect();
+          var br = b.get_rect();
+          return -(((ar.w*ar.h)-(br.w*br.h))||(ar.h-br.h));
+        });
+    return pieces;
   };
 
   this.export_all = function(){
     var global_seq = 0;
+    var fabrics = this.filesArrangeStruct.keys();
+    var timeStamp = (new Date()).valueOf().toString().substr(5, 5);
     var sub_folders = {};
-    for ( var size in this.size_groups){
-      var size_group = this.size_groups[size];
-      for ( var fabric in size_group ){
-        var fabric_width = FABRIC_LIST[fabric][1];
-        var ab = app.activeDocument.artboards[0];
-        $.writeln("fabric: "+fabric + "--> " + fabric_width);
-        //resize_artboard(ab, fabric_width-2, 120);
+    for (var fi = 0; fi<fabrics.length; fi++){
+      var fabric = fabrics[fi];
+      var folder_id = [this.log, fabric, this.unit_count].join('_');
+      var output_folder = new Folder(OUTPUT_FOLDER + "\\" + [COMBINING_PREFIX, folder_id].join('_'));
+      if ( ! output_folder.exists ){
+        output_folder.create();
+      }
+      sub_folders[folder_id]=0;
 
-        // Get all files matching the pattern
-        var files = size_group[fabric];
-
-        var pieces = import_all(files);
-        pieces.sort(function(a, b)
-            {
-              var ar = a.get_rect();
-              var br = b.get_rect();
-              return -(((ar.w*ar.h)-(br.w*br.h))||(ar.h-br.h));
-            });
-
-        // prepare folder
-        var folder_id = [this.log, fabric, this.unit_count].join('_');
-        var output_folder = new Folder(OUTPUT_FOLDER + "\\" + [COMBINING_PREFIX, folder_id].join('_'));
-        if ( ! output_folder.exists ){
-          output_folder.create();
-          sub_folders[folder_id]=0;
-        }
-        $.writeln("export to: "+output_folder);
-        
-        if(!(folder_id in sub_folders))
-          sub_folders[folder_id]=0;
-        //
-        // export
-        var size_seq = 0;
-        while(pieces.length > 0){
-          var filename = [this.log, fabric, size, size_seq++].join('_') +".pdf";
-
-          resize_artboard(ab, fabric_width-2, 120);
-          var pb = new PrintBoard(ab);
-          //var timestamp = (new Date()).getTime();
-          CUTCODE_TEXTFRAME.contents = filename;//[this.log, fabric, size, "cut", global_seq++].join("_");
-          redraw();
-          pb.import_pieces(pieces);
-          ab.artboardRect = [0, 0, (new UnitValue(fabric_width-2, "in")).as ('px'), pb.lowest];
-          sub_folders[folder_id] += Math.ceil((new UnitValue(-pb.lowest, "px")).as ('in'));
-
-
-          var cut_file = CUT_OUTPUT_FOLDER+"\\" + filename;//[this.log, "cut", global_seq, timestamp].join("_")+".pdf";
-          var cut_file_mid = CUT_OUTPUT_FOLDER_MID+"\\" + filename;
-          var print_file = output_folder + "\\" + filename;//[this.log, fabric, size, size_seq++, "cut", global_seq++].join('_') +".pdf";
-
-          pb.export_pdf(cut_file_mid);
-          var pf = File(cut_file_mid);
-          pf.copy(cut_file);
-
-          pb.remove_all();
-          CUTCODE_TEXTFRAME.contents = "";
-          
-          //
-          var cutpiece = import_piece(app.activeDocument, cut_file_mid);
-          cutpiece.move_to([0,0]);
-          cutpiece.flip();
-          cutpiece.pageitem().embed();
-          
-          getRidOfCutLine("Thru-Cut");
-          pb.export_pdf(print_file);
-
-          //app.activeDocument.pageItems.removeAll();
-          items = app.activeDocument.pageItems;
-          for ( i = 0; i < items.length ; i++ )
-          {
-            if (items[i] != CUTCODE_TEXTFRAME){
-              if (!items[i].hidden)
-                items[i].remove();
-            }
+      var fabric_width = FABRIC_LIST[fabric][1];
+      var ab = app.activeDocument.artboards[0];
+      $.writeln("fabric: "+fabric + "--> " + fabric_width);
+      resize_artboard(ab, fabric_width-2, 0);
+      var fabric_group = this.filesArrangeStruct[fabric];
+      for ( var i = 0; i < fabric_group.length; i++){
+        // file id = fabric_group[i][0]
+        var files = fabric_group[i][1];
+        var pieces = [];
+        if (files[0][0] instanceof Array){
+          for (var j=0; j<files.length; j++){
+            pieces = pieces.concat(this.importAndOrderBySize(files[j].map(function(item){ return item[2];})));
           }
-
-          //resize_artboard(ab, fabric_width-2, 120);
+        } else{
+          pieces = this.importAndOrderBySize(files.map(function(item){ return item[2];}));
         }
+        sub_folders[folder_id]+=this.combinePieces(ab, output_folder, [this.log, fabric, fabric_group[i][0]].join('_'), pieces);
       }
     }
-    var i = 0;
-    var folder_count = 0;
-    for( id in sub_folders)
-      folder_count++;
-
-    for (var folder_id in sub_folders) {
-      i++;
+    var subfolderIds = sub_folders.keys();
+    var folder_count = subfolderIds.length;
+    var timeStamp = (new Date()).valueOf().toString().substr(5, 5);
+    for (var i=0; i<folder_count; i++) {
+      folder_id = subfolderIds[i];
       //var total_length = (new UnitValue(sub_folders[folder_id], "px")).as ('in');
       var sub_folder = new Folder(OUTPUT_FOLDER + "\\" + [COMBINING_PREFIX, folder_id].join('_'));
-      var ok = sub_folder.rename(OUTPUT_FOLDER + "\\" + [COMBINED_PREFIX, folder_id, sub_folders[folder_id].toString()+"in", i.toString()+"-"+folder_count.toString()].join('_'));
+      var ok = sub_folder.rename(OUTPUT_FOLDER + "\\" + [COMBINED_PREFIX, folder_id, sub_folders[folder_id].toString()+"in", (i+1).toString()+"-"+folder_count.toString(), timeStamp].join('_'));
       if(!ok)
         $.writeln("Rename failed: "+sub_folder);
       else
@@ -369,7 +484,7 @@ var Task = function(folder){
     }
   };
 
-  init(folder);
+  this.init();
 }
 
 
@@ -401,20 +516,16 @@ function import_all(files){
 }
 
 function resize_artboard(ab, width, height){
-  ab.artboardRect = [0, 0, (new UnitValue(width, "in")).as ('px'), (new UnitValue(-height, "in")).as('px')];
+  width = (width && (new UnitValue(width, "in")).as ('px'))||ab.artboardRect[2];
+  height = (height && (new UnitValue(-height, "in")).as ('px'))||ab.artboardRect[3];
+  ab.artboardRect = [0, 0, width, height];
 };
 
-function main(){
-  // Select the source folder.
-  var sourceFolder = Folder.selectDialog('Select the folder with Illustrator files that you want to mere into one', '~');
-
-  if(!sourceFolder)
-    return;
-
+function createTitleText(){
   // Point Text
   var pointTextRef = app.activeDocument.textFrames.add();
   pointTextRef.contents = "";
-  pointTextRef.top = -20;
+  pointTextRef.top = -TITLE_SIZE;
   pointTextRef.left = 10;
 
   // resize text
@@ -429,8 +540,8 @@ function main(){
     charStyle = docRef.characterStyles.add("BigRed");
     // set character attributes
     var charAttr = charStyle.characterAttributes;
-    charAttr.size = 20;
-    charAttr.tracking = -30;
+    charAttr.size = TITLE_SIZE;
+    charAttr.tracking = -TITLE_SIZE;
     charAttr.capitalization = FontCapsOption.ALLCAPS;
     var redColor = new RGBColor();
     redColor.red = 255;
@@ -439,14 +550,77 @@ function main(){
     charAttr.fillColor = redColor;
   }
   // apply to each textFrame in the document
+  // TODO: replace with pointTextRef
   charStyle.applyTo(docRef.textFrames[0].textRange);
 
+  return pointTextRef;
+}
 
-  CUTCODE_TEXTFRAME = pointTextRef;
+function getLogFolder(sFolder, log){
+  $.writeln(sFolder, log);
+  var f = Folder(sFolder);
+  var path = []
+  path.push(log.substr(0, 3));
+  path.push(log);
+  //path.push(log+"_*");
+  var subf = f;
+  for ( var i = 0; i<path.length; i++){
+    var tmp = subf.getFiles(path[i]);
+    var subfs = tmp.filter(function(f){return f instanceof Folder;});
+    if(subfs.length){
+      subf = subfs[0];
+    }else{
+      subf = null;
+      return [];
+      }
+    }
+  return subf.getFiles(log+"_*").filter(function(f){return f instanceof Folder;});   
+}
 
-  var task = new Task(sourceFolder);
+function main(){
+  // Select the source folder.
+  var thisDoc = app.documents.add;
+  var source;
+  var logNumber = setting.log;
+  if (logNumber != undefined){
+    var searchFolders = ORIGINAL_PDF_FOLDER.split(",");
+    var logFolders = [];
+    for (var i=0; i<searchFolders.length; i++){
+      logFolders = logFolders.concat(getLogFolder(searchFolders[i], logNumber));
+    }
+    if(logFolders.length==1){
+      source = logFolders[0];
+    }else if(logFolders.length==0){
+      Window.alert("No folder for log:'"+logNumber+"'find!");
+      return;
+    }else{
+      Window.alert("Multipule folder for log:'"+logNumber+"'find!");
+      return;
+    }
+  }
+  /*var dlg = new Window('dialog', 'input log number');
+  dlg.msgPnl = dlg.add('panel', undefined, 'Log');
+  dlg.msgPnl.log = dlg.msgPnl.add('edittext', undefined, '');
+  dlg.msgPnl.onEnterKey = function(){logNumber = "123456"};
+  dlg.msgPnl.log.onEnterKey = function(){logNumber = "0123456"};
+  dlg.show();
+  
+  var source = Folder.selectDialog('Select the folder with Illustrator files that you want to mere into one', '~'); */
+
+  if(!source)
+    source = File.openDialog('Select the folder with Illustrator files that you want to mere into one', '*.redo');
+
+  if(!source)
+    return;
+
+  CUTCODE_TEXTFRAME = createTitleText();
+
+  var task = new Task(source);
   task.export_all();
   CUTCODE_TEXTFRAME.remove();
+  if (source instanceof File){
+    source.rename(source.name.replace(".redo", ".done"));
+  }
 }
 
 main();
