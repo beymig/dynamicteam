@@ -5,7 +5,9 @@
 
 
 (function (){
-  function Exporter(doc, setting){
+
+
+function Exporter(doc, setting){
     //this.setting = setting;
     var rtValues = {};
     var exportInfo = {
@@ -13,6 +15,24 @@
       sizeInfo:{},
       blankInfo:{},
     };
+
+function getPlaceHolders(phText){
+      var phs = [];
+      var text_frames = doc.textFrames;  
+      for (var i = 0 ; i < text_frames.length; i++){  
+        if ( text_frames[i].contents == phText){
+          phs[phs.length] = text_frames[i];
+        }
+    //else
+   // Window.alert ("Placeholder number does not match");
+      // if (Button.onClick){
+         //  return;
+           //}
+      }
+      return phs;
+    }
+
+    
     //setting.log, units
     function exportPieces(count, number){
       var artboards = doc.artboards;
@@ -57,16 +77,7 @@
       }  
     }
 
-    function getPlaceHolders(phText){
-      var phs = [];
-      var text_frames = doc.textFrames;  
-      for (var i = 0 ; i < text_frames.length; i++){  
-        if ( text_frames[i].contents == phText){
-          phs[phs.length] = text_frames[i];
-        }
-      }
-      return phs;
-    }
+    
 
     function exportPiecesBySize(count, ph, numbers){
       replaceTextFrames(/^8888$/g, setting.log);
@@ -313,8 +324,15 @@
           }
           this.window.close(0);
           //opens a new document
-          var thisDoc = app.documents.add();
-       #include 'MultiToOne.jsx'
+          var answer = confirm("Do you want to upload the files for printing?")
+            if (answer){
+          app.doScript ("open_new_document", "Default Actions");
+          #include 'MultiToOne.jsx'
+            }
+        else{
+         return;
+            }
+       
          
   
         };
