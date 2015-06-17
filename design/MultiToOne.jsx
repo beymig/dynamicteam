@@ -2,17 +2,14 @@
 //Set up vairaibles
 #include "util.jsx"
 
-
-
 function remove_vector_data(f){
-    
   var combiningDoc = app.activeDocument;
   if (f.open("r")){
     f.seek(0, 2);
     var size = f.tell();
     f.close();
     if(size > 300*1024){
-      var thisDoc = app.open(f); //
+      var thisDoc = app..documents.add(f); //
       thisDoc.selection = null;
       app.doScript("select_cut_lines", "Default Actions");
       var cut_lines = thisDoc.selection;
@@ -579,7 +576,6 @@ function getLogFolder(sFolder, log){
 
 function main(){
   // Select the source folder.
-  var thisDoc = app.documents.add;
   var source;
   var logNumber = setting.log;
   if (logNumber != undefined){
