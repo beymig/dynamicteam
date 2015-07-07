@@ -327,7 +327,7 @@ def show_tasks():
 @app.route('/')
 @app.route('/zund', methods=['GET'])
 def show_zund_tasks():
-   tasks = Task.query.order_by(Task.log).filter(~Task.fabric.startswith("SHEET")).filter(~Task.log.endswith("redo"))
+   tasks = Task.query.order_by(Task.log).filter(~Task.fabric.startswith("SHEET")).filter(Task.modify_at>"2015-05-31 00:00:00")
    return render_template('zund_view.html',tasks=tasks)
 
 
