@@ -1,0 +1,87 @@
+{% extends "layout.html" %}
+{% block body %}
+<script>
+    
+        function makeZundDone(e, taskid, done){
+            $.post("{{ url_for('set_zunddone') }}",
+              {
+                  taskid:taskid,
+                  done:done
+              }, function(){
+                  location.reload();
+              });
+            e.stopPropagation();
+            return true;
+        }
+
+        
+
+        function ApplyFilterZund(e){
+            var filter = e.target.value;
+            var tasks=$("li.list-group-item");
+            $.each(tasks, function(idx, value){
+                if (idx==0){
+                    return;
+                }
+                var fields = $(value).find("div>span");
+                var log = $(fields[0]).text();
+                if (~log.indexOf(filter)){
+                    $(tasks[idx]).show()
+                }else{
+                    $(tasks[idx]).hide();
+                }
+            });
+        }
+
+    
+</script>
+
+<div class="row show-grid">
+    <div class="row placeholders">
+        <div class="row">
+            <input type="text" class="col-xs-2" id="log-number" oninput="ApplyFilterZund(event);" placeholder="Input To Filter">
+        </div>
+
+        <ul class="list-group panel-group" id="tasks">
+            <li class='list-group-item list-group-item-info'>
+                <div class="row show-grid">
+                    <span class="col-xs-2">Log</span>
+                    <span class="col-xs-2">Fabric</span>
+                    <span class="col-xs-2">Last Modified</span>
+                    <span class="col-xs-1">Units</span>
+                    <span class="col-xs-1">Length</span>
+                    <span class="col-xs-1">Status</span>
+                    <span style="float:right">Ready to go</span>
+           
+                </div>
+            </li>
+          
+              {% for task in tasks %}
+            {% if task.status=='waiting' or task.status=='printed' %}
+            <li id="list-task-{{ task.id }}" class='list-group-item panel panel-default'>
+                <div>
+                    <span class="col-xs-2">{{ task.log }}</span>
+                    <span class="col-xs-2">{{ task.fabric }}</span>
+                    <span class="col-xs-2"> {{ task.modify_at }}</span>
+                    <span class="col-xs-1">{{ task.units }}</span>
+                    <span class="col-xs-1">{{ task.length }}</span>
+                    <span style="float:none {% if task.status=='printed' %}"><font color="green"><b>WAITING FOR ROLL </b> {% endif %}</font></span>
+                    <span style="float:none {% if task.status=='waiting' %}"><font color="red"><b>WAITING FOR REDO </b> {% endif %}</font></span>
+                    <span style="float:left">
+                        <button type="button" class="btn btn-xs btn-info" onclick="makeZundDone(event, {{ task.id }}, 1);" aria-label="done">
+                            <span class="glyphicon glyphicon-repeat" aria-hidden="true"></span>
+                        </button>
+                        </span>
+                        <span style="float:right">
+                            <button type="button" class="btn btn-xs btn-info" onclick="makeZundDone(event, {{ task.id }}, 0);" aria-label="done">
+                                <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+                            </button>
+                        </span>
+                 </div>
+            </li>
+            {% endif %}
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}
