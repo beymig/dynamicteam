@@ -198,6 +198,15 @@ def set_redodone():
   db.session.commit()
   return ""
 
+@app.route('/zunddone', methods=['POST'])
+def set_zunddone():
+  taskid, done = int(request.form['taskid']), int(request.form['done'])
+  t = Task.query.get(taskid)
+  t.modify_at = datetime.now();
+  t.status = done and "waiting" or "cut"
+  db.session.commit()
+  return ""
+
 @app.route('/blanklist/setstatus', methods=['POST'])
 def set_blank_staus():
   blankid, status = int(request.form['blankid']), request.form['status']
@@ -318,44 +327,8 @@ def show_tasks():
 @app.route('/')
 @app.route('/zund', methods=['GET'])
 def show_zund_tasks():
-  view_type = request.args.get("view", "")
-  today = date.today()
-  waiting = Task.query.order_by(Task.create_at).filter(Task.status.in_(("assigned", "dispatching"))).count()
-  waiting += Task.query.order_by(Task.create_at).filter_by(status=None).count()
-  task_counts = [('waiting',waiting)]
-  for i in range(6):
-    date_from = date.today()-timedelta(days=i)
-    date_to = date.today()-timedelta(days=i-1)
-    count = Task.query.filter_by(status="printed").filter(Task.modify_at.between(date_from, date_to)).count()
-    task_counts.append((date_from.strftime("%Y-%m-%d"), count))
-
-  
-  if view_type=="":
-    tasks = Task.query.order_by(Task.create_at).filter(Task.status.in_(("assigned", "dispatching"))).all()
-    tasks.extend(Task.query.order_by(Task.create_at).filter_by(status=None).all())
-  elif view_type[:3]=="log":
-    tasks = Task.query.filter_by(log=view_type[4:]).all()
-  else:
-    date_from = datetime.strptime(view_type, '%Y-%m-%d')
-    date_to = date_from+timedelta(days=1)
-    tasks = Task.query.filter(Task.status.in_(("dispatched","printed"))).filter(Task.modify_at.between(date_from, date_to)).all()
-
-  for t in tasks:
-    fields = t.folderid.split('_')
-    if len(fields[-1])<5:
-      t.redo_id = fields[-1]
-    o = Orders.query.get(t.log)
-    if o:
-      t.create_at = o.create_at
-      t.daystogo = o.daytogo
-    if t.log[-4:] == "redo":
-      ot = Task.query.filter_by(log=t.log[:-4], fabric=t.fabric).first()
-      if not ot:
-        ot = Task.query.filter(Task.log==t.log[:-4], Task.fabric.startswith("SHEET")).first()
-      if ot:
-        t.originPrinter=ot.printer or ""
-
-  return render_template('zund_view.html', view=view_type, tasks=tasks, task_counts=task_counts)
+   tasks = Task.query.order_by(Task.log).filter(~Task.fabric.startswith("SHEET")).filter(~Task.log.endswith("redo"))
+   return render_template('zund_view.html',tasks=tasks)
 
 
 
