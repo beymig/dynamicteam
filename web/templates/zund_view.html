@@ -65,8 +65,9 @@
                     <span class="col-xs-2"> {{ task.modify_at }}</span>
                     <span class="col-xs-1">{{ task.units }}</span>
                     <span class="col-xs-1">{{ task.length }}</span>
-                    <span style="float:none {% if task.status=='printed' %}"><font color="green"><b>WAITING FOR ROLL </b> {% endif %}</font></span>
+                    <span style="float:none {% if task.status=='printed' %}"><font color="green"><b>WAITING FOR FABRIC </b> {% endif %}</font></span>
                     <span style="float:none {% if task.status=='waiting' %}"><font color="red"><b>WAITING FOR REDO </b> {% endif %}</font></span>
+                    {% if task.status=='printed' %}
                     <span style="float:left">
                         <button type="button" class="btn btn-xs btn-info" onclick="makeZundDone(event, {{ task.id }}, 1);" aria-label="done">
                             <span class="glyphicon glyphicon-repeat" aria-hidden="true"></span>
@@ -77,6 +78,14 @@
                                 <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
                             </button>
                         </span>
+                    {% endif %}
+                    {% if task.status=='waiting' %}
+                    <span style="float:right">
+                        <button type="button" class="btn btn-xs btn-info" onclick="makeZundDone(event, {{ task.id }}, 0);" aria-label="done">
+                            <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+                        </button>
+                    </span>
+                    {% endif %}
                  </div>
             </li>
             {% endif %}
