@@ -171,91 +171,66 @@ $( document ).ready(function() {
 </script>
 <div class="col-sm-9 col-sm-offset-3 col-md-9 col-md-offset-2 main">
 
-    <div id="printers" class="row placeholders">
-        <h4 class="page-header">Printers</h4>
-        <div class="row">
-            <div class="col-md-5">
-                P-ERS
-                <div role="toolbar" class="btn-toolbar">
-                    <div class="btn-group">
-                        {% for printer in (1,2,3,20,21,22) %}
-                        <button class="btn btn-default" id="P-ERS{{ " %02d"|format(printer) }}" type="button">{{ "%02d"|format(printer) }}</button>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-2">
-                P-ER
-                <div role="toolbar" class="btn-toolbar">
-                    <div class="btn-group">
-                        {% for printer in (1,2) %}
-                        <button class="btn btn-default" id="P-ER{{ " %02d"|format(printer) }}" type="button">{{ "%02d"|format(printer) }}</button>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                P-Mimaki
-                <div role="toolbar" class="btn-toolbar">
-                    <div class="btn-group">
-                        {% for printer in (25, 26, 27) %}
-                        <button class="btn btn-default" id="P-Mimaki{{ " %02d"|format(printer) }}" type="button">{{ "%02d"|format(printer) }}</button>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row">
-            P-E
-            <div role="toolbar" class="btn-toolbar">
-                <div class="btn-group">
-                    {% for printer in (4,5,6,8,9,10,11,13,14) %}
-                    <button class="btn btn-default" id="P-E{{ " %02d"|format(printer) }}" type="button">{{ "%02d"|format(printer) }}</button>
-                    {% endfor %}
-                    <span class="bg-danger">Only 4 and 6 can be used for rolls</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="row">
-            P-EN
-            <div role="toolbar" class="btn-toolbar">
-                <div class="btn-group">
-                    {% for printer in (4,5,7,8,9,10,11,13,14) %}
-                    <button class="btn btn-default" id="P-EN{{ " %02d"|format(printer) }}" type="button">{{ "%02d"|format(printer) }}</button>
-                    {% endfor %}
-                    <span class="bg-danger">Do not use 7 for sheets</span>
-                </div>
-            </div>
-        </div>
-    </div>
-    
+  <div id="printers" class="row placeholders">
+    <h4 class="page-header">Printers</h4>
     <div class="row">
-        <br />
-        <span class="bg-danger">SMALL PRINTERS</span>
-        <div class="row">
-            P-E
-            <div role="toolbar" class="btn-toolbar">
-                <div class="btn-group">
-                    {% for printer in (17,18,19) %}
-                    <button class="btn btn-default" id="P-E{{ " %02d"|format(printer) }}" type="button">{{ "%02d"|format(printer) }}</button>
-                    {% endfor %}
-                </div>
-            </div>
+      <div class="col-md-5">
+        P-ERS
+        <div role="toolbar" class="btn-toolbar">
+          <div class="btn-group">
+            {% for printer in (1,2,3,20,21,22) %}
+            <button class="btn btn-default" id="P-ERS{{ "%02d"|format(printer) }}" type="button">{{ "%02d"|format(printer) }}</button>
+            {% endfor %}
+          </div>
         </div>
-
-        <div class="row">
-            P-EN
-            <div role="toolbar" class="btn-toolbar">
-                <div class="btn-group">
-                    {% for printer in (17,18,19) %}
-                    <button class="btn btn-default" id="P-EN{{ " %02d"|format(printer) }}" type="button">{{ "%02d"|format(printer) }}</button>
-                    {% endfor %}
-                </div>
-            </div>
+      </div>
+      <div class="col-md-2">
+        P-ER
+        <div role="toolbar" class="btn-toolbar">
+          <div class="btn-group">
+            {% for printer in (1,2) %}
+            <button class="btn btn-default" id="P-ER{{ "%02d"|format(printer) }}" type="button">{{ "%02d"|format(printer) }}</button>
+            {% endfor %}
+          </div>
         </div>
+      </div>
+      <div class="col-md-3">
+        P-Mimaki
+        <div role="toolbar" class="btn-toolbar">
+          <div class="btn-group">
+            {% for printer in (25, 26, 27) %}
+            <button class="btn btn-default" id="P-Mimaki{{ "%02d"|format(printer) }}" type="button">{{ "%02d"|format(printer) }}</button>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
     </div>
+
+    <div class="row">
+      P-E
+      <div role="toolbar" class="btn-toolbar">
+        <div class="btn-group">
+          {% for printer in (4,5,6,8,10,11,13,14) %}
+          <button class="btn btn-default" id="P-E{{ "%02d"|format(printer) }}" type="button">{{ "%02d"|format(printer) }}</button>
+          {% endfor %}
+          <span class="bg-danger">Only 6 can be used for rolls. Use 5 and 13 only for sheets</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      P-EN
+      <div role="toolbar" class="btn-toolbar">
+        <div class="btn-group">
+          {% for printer in (4,5,7,8,10,11,13,14) %}
+          <button class="btn btn-default" id="P-EN{{ "%02d"|format(printer) }}" type="button">{{ "%02d"|format(printer) }}</button>
+          {% endfor %}
+          <span class="bg-danger">Do not use 7 for sheets. Use 5 and 13 only for sheets</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="row placeholders">
     <p class="page-header"></p>
     <div class="row">
@@ -288,12 +263,17 @@ $( document ).ready(function() {
       <div class="row show-grid dyt-task-item {% if task.gradient %}bg-success{% endif %}" {% if view!="" %} data-toggle="collapse" data-parent="#tasks" href="#sheets-panel-{{ task.id }}" {% endif %}>
         <span class="col-xs-2">{% if not task.printer %} <input type="checkbox" class="select-task" value="{{ task.id }}">{% endif %} {{ task.log }} {% if task.redo_id %}<a href="/redo?id={{ task.redo_id }}" target="_blank"><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span></a> {% endif %}</span>
         <span class="col-xs-2">{{ task.fabric }}</span>
-        <span class="col-xs-2 {% if task.status=='printed' %}label label-success{% endif %}">{{ task.create_at.strftime('%m-%d %H:%M') }}</span>
+        <span class="col-xs-2 {% if task.status=='printed' or task.status=='cut' %}label label-success{% endif %}">{{ task.create_at.strftime('%m-%d %H:%M') }}</span>
         <span class="col-xs-1">{{ task.units }}</span>
         <span class="col-xs-1">{{ task.length }}</span>
           {% if task.printer %}
-            {% if task.status in ("dispatched", "printed") %}
+            {% if task.status in ("dispatched", "printed") or task.status in ("cut")  %}
+          {% if task.status in ("dispatched", "printed") %}
             <span class="col-xs-3">{{ task.modify_at.strftime('%m-%d %H:%M') }} --&gt; {{ task.printer }}</span>
+          {% endif %}
+          {% if task.status in ("cut") %}
+          <span class="col-xs-3">{{ task.modify_at.strftime('%m-%d %H:%M') }} --&gt; {{ task.printer }} (CUT BY ZUND) </span>
+          {% endif %}
             {% else %}
               <span class="col-xs-3"><button type="button" class="btn btn-sm btn-warning dyt-task-assigned">To:{{ task.printer }}</button></span>
             {% endif %}
