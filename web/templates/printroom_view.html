@@ -225,7 +225,7 @@ $( document ).ready(function() {
           {% for printer in (4,5,7,8,10,11,13,14) %}
           <button class="btn btn-default" id="P-EN{{ "%02d"|format(printer) }}" type="button">{{ "%02d"|format(printer) }}</button>
           {% endfor %}
-          <span class="bg-danger">Do not use 7 for sheets. Use 5 and 13 only for sheets</span>
+          <span class="bg-danger">Do not use 7 for sheets</span>
         </div>
       </div>
     </div>
