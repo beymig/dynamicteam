@@ -33,10 +33,12 @@
 "NZP-E14":"Printer__E14",
 "P-E04":"Zund_Printer__E04",
 "P-EN04":"Zund_Printer__EN04",
+"P-EN05":"Zund_Printer__EN05",
 "P-EN07":"Zund_Printer_EN07",
 "P-EN08":"Zund_Printer__EN08",
 "P-EN10":"Zund_Printer__EN10",
 "P-EN11":"Zund_Printer_EN11",
+"P-EN13":"Zund_Printer__EN13",
 "P-EN14":"Zund_Printer_EN14",
 "NZP-EN05":"Printer__EN05",
 "NZP-EN08":"Printer__EN08",
@@ -140,3 +142,4 @@
 "":"Printer_RsGrd21",
 "":"Printer_RsGrd22",
 "":"Printer_XF_640",*/
+
