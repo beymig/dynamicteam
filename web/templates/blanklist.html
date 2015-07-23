@@ -18,17 +18,17 @@ function setBlankStatus(blankid, bstatus){
 
 function ApplyFilterBlank(e){
     var filter = e.target.value;
-    var blank=$("li.list-group-item");
-    $.each(blank, function(idx, value){
+    var blanks=$("li.list-group-item");
+    $.each(blanks, function(idx, value){
         if (idx==0){
             return;
         }
         var fields = $(value).find("div>span");
         var log = $(fields[(0)]).text();
         if (~log.indexOf(filter)){
-            $(blank[idx]).show()
+            $(blanks[idx]).show()
         }else{
-            $(blank[idx]).hide();
+            $(blanks[idx]).hide();
         }
     });
 }
@@ -39,7 +39,7 @@ function ApplyFilterBlank(e){
   <form class="navbar-form navbar-left" role="search">
     <div class="col-xs-12">
       <div class="input-group">
-          <input type="text" class="form-control" id="log-number" oninput="ApplyFilterBlank(event);" placeholder="Input to Filter">
+          <input type="text" class="form-control" id="log-number" oninput="ApplyFilterBlank(event)" placeholder="Input to Filter">
         <span class="input-group-btn">
           <button class="btn btn-default" type="button">Search</button>
         </span>
@@ -49,34 +49,38 @@ function ApplyFilterBlank(e){
 
   </nav>
 
-  <ul class="list-group panel group">
-    <!--(
-    ("833123", "fabric1", "INNER_BACK_NECK"),
-    ("", "fabric1", "INNER_FRONT_NECK"),
-    ("", "fabric2", "INNER_FRONT_NECK"),
-    ("123456", "FABRIC", "INNER_BACK_NECK"),
-    ("", "Another FABRIC", "INNER_BACK_NECK"))-->
-  {% for blank in blanks_wait %}
-      <li id="list-blank-{{ blank.id }}" class="list-group-item panel panel-default">
-          <div>
-              {% if blank.log_show==blank.log %}
-              <span class="col-xs-2">{{ blank.log_show }}</span>
-              <span class="col-xs-2">{{ blank.fabric_show }}</span>
-              <span class="col-xs-3">{{ blank.name }}</span>
-              <span class="col-xs-1">{{ blank.count }}</span>
-              {% else %}
-              <span class="col-xs-2"> <font color="white">{{ blank.log }}</font></span>
-              <span class="col-xs-2">{{ blank.fabric_show }}</span>
-              <span class="col-xs-3">{{ blank.name }}</span>
-              <span class="col-xs-1">{{ blank.count }}</span>
-              {% endif %}
-          </div>
-          <button type="button" class="btn btn-xs btn-success" onclick="setBlankStatus({{ blank.id }}, 'done');" aria-label="done">
-              <span class="glyphicon glyphicon-ok" aria-hidden="true"> Done!</span>
-          </button>
-      </li>
-  {% endfor %}
-  </ul>
+    <ul class="list-group panel-group" id="blank">
+        <li class='list-group-item list-group-item-info'>
+            <div class="row show-grid">
+                <span class="col-xs-2">Log</span>
+                <span class="col-xs-2">Fabric</span>
+                <span class="col-xs-3">Name</span>
+                <span class="col-xs-1">Count</span>
+                <span class="col-xs-1">Status</span>
+
+            </div>
+        </li>
+        {% for blank in blanks_wait %}
+        <li id="list-blank-{{ blank.id }}" class="list-group-item panel panel-default">
+            <div>
+                {% if blank.log_show==blank.log %}
+                <span class="col-xs-2">{{ blank.log_show }}</span>
+                <span class="col-xs-2">{{ blank.fabric_show }}</span>
+                <span class="col-xs-3">{{ blank.name }}</span>
+                <span class="col-xs-1">{{ blank.count }}</span>
+                {% else %}
+                <span class="col-xs-2"> <font color="white">{{ blank.log }}</font></span>
+                <span class="col-xs-2">{{ blank.fabric_show }}</span>
+                <span class="col-xs-3">{{ blank.name }}</span>
+                <span class="col-xs-1">{{ blank.count }}</span>
+                {% endif %}
+            </div>
+            <button type="button" class="btn btn-xs btn-success" onclick="setBlankStatus({{ blank.id }}, 'done');" aria-label="done">
+                <span class="glyphicon glyphicon-ok" aria-hidden="true"> Done!</span>
+            </button>
+        </li>
+        {% endfor %}
+    </ul>
 
   <div class="row show-grid " data-toggle="collapse" href="#sheets-panel">
     <div class="col-xs-2 col-sm-offset-4 label label-default">
