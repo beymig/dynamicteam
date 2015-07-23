@@ -172,22 +172,26 @@ def view_redo():
 @app.route('/redo/sewing', methods=['GET'])
 def redo_sewing():
  redos = Redo.query.order_by(Redo.create_at).filter (Redo.create_by.startswith("sew")).filter(Redo.status.startswith("built"))
- return render_template('redo_by_department.html', redos=redos)
+ department = 'Sewing'
+ return render_template('redo_by_department.html', redos=redos, department=department)
 
 @app.route('/redo/transfer', methods=['GET'])
 def redo_transfer():
  redos = Redo.query.order_by(Redo.create_at).filter (Redo.create_by.startswith("Transfer")).filter(Redo.status.startswith("built"))
- return render_template('redo_by_department.html', redos=redos)
+ department = 'Transfer'
+ return render_template('redo_by_department.html', redos=redos, department=department)
 
 @app.route('/redo/zund', methods=['GET'])
 def redo_zund():
  redos = Redo.query.order_by(Redo.create_at).filter (Redo.create_by.startswith("Zund")).filter(Redo.status.startswith("built"))
- return render_template('redo_by_department.html', redos=redos)
+ department = 'Zund'
+ return render_template('redo_by_department.html', redos=redos, department=department)
 
 @app.route('/redo/shipping', methods=['GET'])
 def redo_shipping():
  redos = Redo.query.order_by(Redo.create_at).filter(Redo.create_by=="Shipping").filter(Redo.status.in_(("built","waiting")))
- return render_template('redo_by_department.html', redos=redos)
+ department = 'Shipping'
+ return render_template('redo_by_department.html', redos=redos, department=department)
 
 @app.route('/redodone', methods=['POST'])
 def set_redodone():
@@ -232,8 +236,8 @@ def blank_view():
         else:
           fabric = b.fabric
       else:
-        log = b.log
-        fabric = b.fabric
+          log = b.log
+          fabric = b.fabric
 
   return render_template('blanklist.html', blanks_wait=blanks_wait, blanks_done=blanks_done)
 
@@ -296,8 +300,8 @@ def show_tasks():
   if view_type=="":
     tasks = Task.query.order_by(Task.create_at).filter(Task.status.in_(("assigned", "dispatching"))).all()
     tasks.extend(Task.query.order_by(Task.create_at).filter_by(status=None).all())
-  elif view_type[:3]=="log":
-    tasks = Task.query.filter_by(log=view_type[4:]).all()
+  elif view_type[:6].isdigit():
+    tasks = Task.query.filter_by(log=view_type).all()
   else:
     date_from = datetime.strptime(view_type, '%Y-%m-%d')
     #day_before = int(view_type.split('-')[1])
@@ -327,7 +331,7 @@ def show_tasks():
 @app.route('/')
 @app.route('/zund', methods=['GET'])
 def show_zund_tasks():
-   tasks = Task.query.order_by(Task.log).filter(~Task.fabric.startswith("SHEET")).filter(Task.modify_at>"2015-05-31 00:00:00")
+   tasks = Task.query.order_by(Task.modify_at).filter(~Task.fabric.startswith("SHEET")).filter(Task.modify_at>"2015-06-18 00:00:00")
    return render_template('zund_view.html',tasks=tasks)
 
 
