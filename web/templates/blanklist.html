@@ -1,0 +1,115 @@
+{% extends "layout.html" %}
+{% block body %}
+<script>
+$( document ).ready(function() {
+    $('.navbar-nav li').removeClass('active');
+    $('.navbar-nav #nav-blanklist').addClass('active');
+});
+
+function setBlankStatus(blankid, bstatus){
+  $.post("{{ url_for('set_blank_staus') }}", 
+    {
+      blankid:blankid,
+      status: bstatus
+      }, function(){
+      window.location.href = "{{ url_for('blank_view') }}";
+      });
+}
+
+function ApplyFilterBlank(e){
+    var filter = e.target.value;
+    var blank=$("li.list-group-item");
+    $.each(blank, function(idx, value){
+        if (idx==0){
+            return;
+        }
+        var fields = $(value).find("div>span");
+        var log = $(fields[(0)]).text();
+        if (~log.indexOf(filter)){
+            $(blank[idx]).show()
+        }else{
+            $(blank[idx]).hide();
+        }
+    });
+}
+</script>
+<div class="col-sm-12 col-sm-offset-1 col-md-11 col-md-offset-1 main">
+  <h2>Blank Pieces List</h2>
+  <nav class="navbar navbar-default" >
+  <form class="navbar-form navbar-left" role="search">
+    <div class="col-xs-12">
+      <div class="input-group">
+          <input type="text" class="form-control" id="log-number" oninput="ApplyFilterBlank(event);" placeholder="Input to Filter">
+        <span class="input-group-btn">
+          <button class="btn btn-default" type="button">Search</button>
+        </span>
+       </div><!-- /input-group -->
+    </div><!-- /.col-lg-6 -->
+  </form>
+
+  </nav>
+
+  <ul class="list-group panel group">
+    <!--(
+    ("833123", "fabric1", "INNER_BACK_NECK"),
+    ("", "fabric1", "INNER_FRONT_NECK"),
+    ("", "fabric2", "INNER_FRONT_NECK"),
+    ("123456", "FABRIC", "INNER_BACK_NECK"),
+    ("", "Another FABRIC", "INNER_BACK_NECK"))-->
+  {% for blank in blanks_wait %}
+      <li id="list-blank-{{ blank.id }}" class="list-group-item panel panel-default">
+          <div>
+              {% if blank.log_show==blank.log %}
+              <span class="col-xs-2">{{ blank.log_show }}</span>
+              <span class="col-xs-2">{{ blank.fabric_show }}</span>
+              <span class="col-xs-3">{{ blank.name }}</span>
+              <span class="col-xs-1">{{ blank.count }}</span>
+              {% else %}
+              <span class="col-xs-2"> <font color="white">{{ blank.log }}</font></span>
+              <span class="col-xs-2">{{ blank.fabric_show }}</span>
+              <span class="col-xs-3">{{ blank.name }}</span>
+              <span class="col-xs-1">{{ blank.count }}</span>
+              {% endif %}
+          </div>
+          <button type="button" class="btn btn-xs btn-success" onclick="setBlankStatus({{ blank.id }}, 'done');" aria-label="done">
+              <span class="glyphicon glyphicon-ok" aria-hidden="true"> Done!</span>
+          </button>
+      </li>
+  {% endfor %}
+  </ul>
+
+  <div class="row show-grid " data-toggle="collapse" href="#sheets-panel">
+    <div class="col-xs-2 col-sm-offset-4 label label-default">
+      <span>Show</span>
+      <span aria-hidden="true" class="glyphicon glyphicon-arrow-down"></span>
+      <span aria-hidden="true" class="glyphicon glyphicon-arrow-down"></span>
+      <span aria-hidden="true" class="glyphicon glyphicon-arrow-down"></span>
+      <span>Done</span>
+    </div>
+  </div>
+  <div id="sheets-panel" class="panel-collapse collapse" >
+    <ul class="list-group panel group">
+    {% for blank in blanks_done %}
+        <li id="list-blank-{{ blank.id }}" class="list-group-item panel panel-default">
+            <div>
+                {% if blank.log_show==blank.log %}
+                <span class="col-xs-2">{{ blank.log_show }}</span>
+                <span class="col-xs-2">{{ blank.fabric_show }}</span>
+                <span class="col-xs-3">{{ blank.name }}</span>
+                <span class="col-xs-1">{{ blank.count }}</span>
+                {% else %}
+                <span class="col-xs-2"> <font color="white">{{ blank.log }}</font></span>
+                <span class="col-xs-2">{{ blank.fabric_show }}</span>
+                <span class="col-xs-3">{{ blank.name }}</span>
+                <span class="col-xs-1">{{ blank.count }}</span>
+                {% endif %}
+            </div>
+            <button type="button" class="btn btn-xs btn-danger" onclick="setBlankStatus({{ blank.id }}, 'new');" aria-label="undo">
+                <span class="glyphicon glyphicon-repeat" aria-hidden="true"> Undo it!</span>
+            </button>
+        </li>
+    {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endblock %}
