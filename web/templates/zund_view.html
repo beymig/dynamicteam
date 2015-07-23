@@ -1,6 +1,11 @@
 {% extends "layout.html" %}
 {% block body %}
 <script>
+    $( document ).ready(function() {
+        $('.navbar-nav li').removeClass('active');
+        $('.navbar-nav #nav-zund').addClass('active');
+    });
+
     
         function makeZundDone(e, taskid, done){
             $.post("{{ url_for('set_zunddone') }}",
@@ -13,9 +18,6 @@
             e.stopPropagation();
             return true;
         }
-
-        
-
         function ApplyFilterZund(e){
             var filter = e.target.value;
             var tasks=$("li.list-group-item");
@@ -30,67 +32,76 @@
                 }else{
                     $(tasks[idx]).hide();
                 }
-            });
+                   });
         }
 
     
 </script>
 
-<div class="row show-grid">
-    <div class="row placeholders">
-        <div class="row">
-            <input type="text" class="col-xs-2" id="log-number" oninput="ApplyFilterZund(event);" placeholder="Input To Filter">
-        </div>
+<div class="col-sm-12 col-sm-offset-1 col-md-11 col-md-offset-1 main">
+    <h2>Zund List</h2>
+    <nav class="navbar navbar-default">
+        <form class="navbar-form navbar-left" role="search">
+            <div class="col-xs-12">
+                <div class="input-group">
+                    <input type="text" class="form-control" id="log-number" oninput="ApplyFilterZund(event)" placeholder="Input to Filter">
+                    
+                </div><!-- /input-group -->
+            </div><!-- /.col-lg-6 -->
+        </form>
 
-        <ul class="list-group panel-group" id="tasks">
-            <li class='list-group-item list-group-item-info'>
-                <div class="row show-grid">
-                    <span class="col-xs-2">Log</span>
-                    <span class="col-xs-2">Fabric</span>
-                    <span class="col-xs-2">Last Modified</span>
-                    <span class="col-xs-1">Units</span>
-                    <span class="col-xs-1">Length</span>
-                    <span class="col-xs-1">Status</span>
-                    <span style="float:right">Ready to go</span>
-           
-                </div>
-            </li>
-          
-              {% for task in tasks %}
-            {% if task.status=='waiting' or task.status=='printed' %}
-            <li id="list-task-{{ task.id }}" class='list-group-item panel panel-default'>
-                <div>
-                    <span class="col-xs-2">{{ task.log }}</span>
-                    <span class="col-xs-2">{{ task.fabric }}</span>
-                    <span class="col-xs-2"> {{ task.modify_at }}</span>
-                    <span class="col-xs-1">{{ task.units }}</span>
-                    <span class="col-xs-1">{{ task.length }}</span>
-                    <span style="float:none {% if task.status=='printed' %}"><font color="green"><b>WAITING FOR FABRIC </b> {% endif %}</font></span>
-                    <span style="float:none {% if task.status=='waiting' %}"><font color="red"><b>WAITING FOR REDO </b> {% endif %}</font></span>
-                    {% if task.status=='printed' %}
-                    <span style="float:left">
-                        <button type="button" class="btn btn-xs btn-info" onclick="makeZundDone(event, {{ task.id }}, 1);" aria-label="done">
-                            <span class="glyphicon glyphicon-repeat" aria-hidden="true"></span>
-                        </button>
-                        </span>
-                        <span style="float:right">
-                            <button type="button" class="btn btn-xs btn-info" onclick="makeZundDone(event, {{ task.id }}, 0);" aria-label="done">
-                                <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
-                            </button>
-                        </span>
-                    {% endif %}
-                    {% if task.status=='waiting' %}
-                    <span style="float:right">
-                        <button type="button" class="btn btn-xs btn-info" onclick="makeZundDone(event, {{ task.id }}, 0);" aria-label="done">
-                            <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
-                        </button>
-                    </span>
-                    {% endif %}
-                 </div>
-            </li>
-            {% endif %}
-            {% endfor %}
-        </ul>
-    </div>
+    </nav>
+
+
+    <ul class="list-group panel-group" id="tasks">
+        <li class='list-group-item list-group-item-info'>
+            <div class="row show-grid">
+                <span class="col-xs-2">Log</span>
+                <span class="col-xs-2">Fabric</span>
+                <span class="col-xs-3">Last Modified</span>
+                <span class="col-xs-1">Units</span>
+                <span class="col-xs-1">Length</span>
+                <span class="col-xs-1">Status</span>
+                <span style="float:right">Ready to go</span>
+
+            </div>
+        </li>
+
+        {% for task in tasks %}
+        {% if task.status=='waiting' or task.status=='printed' %}
+        <li id="list-task-{{ task.id }}" class='list-group-item panel panel-default'>
+            <div>
+                <span class="col-xs-2"><input type="checkbox" class="select-task" value="{{ task.id }}">{{ task.log }}</span>
+                <span class="col-xs-2">{{ task.fabric }}</span>
+                <span class="col-xs-3"> {{ task.modify_at }}</span>
+                <span class="col-xs-1">{{ task.units }}</span>
+                <span class="col-xs-1">{{ task.length }}</span>
+                <span style="float:none {% if task.status=='printed' %}"><font color="green"><b>AT ZUND </b> {% endif %}</font></span>
+                <span style="float:none {% if task.status=='waiting' %}"><font color="red"><b>WAITING FOR REDO </b> {% endif %}</font></span>
+                {% if task.status=='printed' %}
+                <span style="float:left">
+                    <button type="button" class="btn btn-xs btn-info" onclick="makeZundDone(event, {{ task.id }}, 1);" aria-label="done">
+                        <span class="glyphicon glyphicon-repeat" aria-hidden="true"></span>
+                    </button>
+                </span>
+                <span style="float:right">
+                    <button type="button" class="btn btn-xs btn-info" onclick="makeZundDone(event, {{ task.id }}, 0);" aria-label="done">
+                        <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+                    </button>
+                </span>
+                {% endif %}
+                {% if task.status=='waiting' %}
+                <span style="float:right">
+                    <button type="button" class="btn btn-xs btn-info" onclick="makeZundDone(event, {{ task.id }}, 0);" aria-label="done">
+                        <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+                    </button>
+                </span>
+                {% endif %}
+            </div>
+        </li>
+        {% endif %}
+        {% endfor %}
+    </ul>
 </div>
+
 {% endblock %}
