@@ -3,6 +3,12 @@
 
 <script>
 
+    $( document ).ready(function() {
+        $('.navbar-nav li').removeClass('active');
+        $('.navbar-nav #nav-redo').addClass('active');
+    });
+
+
 function makeRedoDone(e, redoid, done){
   $.post("{{ url_for('set_redodone') }}", 
     {
@@ -37,49 +43,57 @@ function ApplyFilter(e){
 </script>
  
       
-<div class="row show-grid">
-      <div class="row placeholders">
-    <div class="row">
-      <input type="text" class="col-xs-4" id="log-number" oninput="ApplyFilter(event);" placeholder="Input To Filter">
+<div class="col-sm-12 col-sm-offset-1 col-md-11 col-md-offset-1 main">
+    <h2>Redo List - {{ department }} </h2>
+    <nav class="navbar navbar-default">
+        <form class="navbar-form navbar-left" role="search">
+            <div class="col-xs-12">
+                <div class="input-group">
+                    <input type="text" class="form-control" id="log-number" oninput="ApplyFilter(event)" placeholder="Input to Filter">
 
-    </div>
- <ul class="list-group panel-group" id="redos" >
-     <li class='list-group-item list-group-item-info'>
-         <div class="row show-grid">
-             <span class="col-xs-3">Log</span>
-             <span class="col-xs-3">Submit Time</span>
-             <span class="col-xs-3">Action</span>       
-         </div>
-     </li>
+                </div><!-- /input-group -->
+            </div><!-- /.col-lg-6 -->
+        </form>
 
-{% for redo in redos %}
-            
-     <li id="list-task-{{ redo.id }}" class='list-group-item panel panel-default'>
-     <div>
-        <span class="col-xs-3">{{ redo.log }}</span>
-        <span class="col-xs-3">{{ redo.create_at }}</span>
-     </div>
+    </nav>
 
-         {% if redo.create_by=='Shipping' %} 
+    <ul class="list-group panel-group" id="redos">
+        <li class='list-group-item list-group-item-info'>
+            <div class="row show-grid">
+                <span class="col-xs-3">Log</span>
+                <span class="col-xs-3">Submit Time</span>
+                <span class="col-xs-3">Action</span>
+            </div>
+        </li>
+
+        {% for redo in redos %}
+
+        <li id="list-task-{{ redo.id }}" class='list-group-item panel panel-default'>
+            <div>
+                <span class="col-xs-3">{{ redo.log }}</span>
+                <span class="col-xs-3">{{ redo.create_at }}</span>
+            </div>
+
+            {% if redo.create_by=='Shipping' %}
             {% if redo.status=='waiting' %}
-             <button type="button" class="btn btn-xs btn-danger" onclick="makeRedoDone(event, {{ redo.id }}, 0);" aria-label="done">
-             <span class="glyphicon glyphicon-eye-close" aria-hidden="true"></span>
-             </button>
+            <button type="button" class="btn btn-xs btn-danger" onclick="makeRedoDone(event, {{ redo.id }}, 0);" aria-label="done">
+                <span class="glyphicon glyphicon-eye-close" aria-hidden="true"></span>
+            </button>
             {% else %}
-             <button type="button" class="btn btn-xs btn-info" onclick="makeRedoDone(event, {{ redo.id }}, 1);" aria-label="done">
-             <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span>
-             </button>
+            <button type="button" class="btn btn-xs btn-info" onclick="makeRedoDone(event, {{ redo.id }}, 1);" aria-label="done">
+                <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span>
+            </button>
             {% endif %}
-         {% endif %}
-        {% if redo.create_by!='Shipping' %}
-             <button type="button" class="btn btn-xs btn-danger" onclick="makeRedoDone(event, {{ redo.id }}, 0);" aria-label="done">
-             <span class="glyphicon glyphicon-eye-close" aria-hidden="true"></span>
-             </button>
-        {% endif %}
-      </li>
+            {% endif %}
+            {% if redo.create_by!='Shipping' %}
+            <button type="button" class="btn btn-xs btn-danger" onclick="makeRedoDone(event, {{ redo.id }}, 0);" aria-label="done">
+                <span class="glyphicon glyphicon-eye-close" aria-hidden="true"></span>
+            </button>
+            {% endif %}
+        </li>
         {% endfor %}
     </ul>
-  </div>
+</div>
 </div>
 {% endblock %}
 
