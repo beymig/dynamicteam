@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+{% block body %}
+
+<script>
+    function ChangeCustomColor(e) {
+        var btn = e.target;
+        var taskid = btn.id.split("-")[1];
+        var gradient = $(btn).hasClass("btn-success") ? 0 : 2;
+        $.post("{{ url_for('customcolor') }}",
+          {
+              taskid: taskid,
+              gradient: gradient,
+          }, function () {
+              window.location.href = "{{ url_for('customcolor') }}";
+          });
+    }
+</script>
+
+{% for t in tasks %}
+<button type="button" id="task-{{ t.id }}" class="btn {% if t.gradient==2 %}btn-danger{% else %}btn-default{% endif %}" onclick="ChangeCustomColor(event)">{{ t.log }} {{ t.fabric }}</button>
+{% endfor %}
+
+{% endblock %}
