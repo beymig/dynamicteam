@@ -45,7 +45,25 @@
 "NZP-EN10":"Printer__EN10",
 "NZP-EN11":"Printer__EN11",
 "NZP-EN13":"Printer__EN13",
-"NZP-EN14":"Printer__EN14"}
+"NZP-EN14":"Printer__EN14",
+"NZP-04":"Printer__04",
+"NZP-05":"Printer__05",
+"NZP-07":"Printer__07",
+"NZP-08":"Printer__08",
+"NZP-10":"Printer__10",
+"NZP-11":"Printer__11",
+"NZP-13":"Printer__13",
+"NZP-14":"Printer__14",
+"NZP-N04":"Printer__N04",
+"NZP-N05":"Printer__N05",
+"NZP-N07":"Printer__N07",
+"NZP-N08":"Printer__N08",
+"NZP-N10":"Printer__N10",
+"NZP-N11":"Printer__N11",
+"NZP-N13":"Printer__N13",
+"NZP-N14":"Printer__N14",
+"NZP-RLND":"Printer__RLND"
+}
 
 
 /*"":"Printer__E04",
@@ -142,4 +160,3 @@
 "":"Printer_RsGrd21",
 "":"Printer_RsGrd22",
 "":"Printer_XF_640",*/
-
